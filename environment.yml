@@ -1,0 +1,18 @@
+# environment.yml
+name: goes-env
+channels:
+  - conda-forge
+dependencies:
+  - python=3.10
+  - s3fs
+  - xarray
+  - netCDF4
+  - boto3
+  - matplotlib
+  - numpy
+  - ipykernel
+  - jupyter
+  # ...otras dependencias...
+  - pip
+  - pip:
+      - -e .

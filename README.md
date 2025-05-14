@@ -16,3 +16,15 @@ trabajo_final/
 ├── README.md               # Documentación general
 └── main.py                 # Script principal para correr todo el pipeline
 ```
+
+# 🧠 Flujo Lógico
+
+**aws_interface.py**: lista archivos disponibles y descarga.
+
+**reader.py**: abre archivos .nc con xarray o netCDF4.
+
+**processor.py**: selecciona canales, normaliza, arma RGB.
+
+**visualization.py**: grafica la imagen o la guarda.
+
+**main.py**: usa todo lo anterior para una fecha/canal.
