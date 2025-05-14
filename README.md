@@ -17,7 +17,7 @@ trabajo_final/
 └── main.py                 # Script principal para correr todo el pipeline
 ```
 
-# 🧠 Flujo Lógico
+# Flujo lógico (en principio)
 
 **aws_interface.py**: lista archivos disponibles y descarga.
 
