@@ -11,9 +11,8 @@ trabajo_final/
 │   ├── processor.py        # Procesamiento de canales, composición RGB
 │   ├── visualization.py    # Funciones para mostrar imágenes
 │   └── utils.py            # Helpers generales (normalización, paths, etc.)
-├── tests/                  # Tests unitarios (si aplicás TDD o testing)
-├── environment.yml         # 📦 Definición de entorno Conda (recomendado)
-├── requirements.txt        # Alternativa si usás pip
+├── tests/                  # Tests unitarios
+├── environment.yml         # 📦 Definición de entorno Conda
 ├── README.md               # Documentación general
 └── main.py                 # Script principal para correr todo el pipeline
 ```
