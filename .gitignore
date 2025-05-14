@@ -172,6 +172,6 @@ cython_debug/
 
 # PyPI configuration file
 .pypirc
-
-#Relativo al proyecto
+# Relativo al proyecto
 data/
+notebooks/data/

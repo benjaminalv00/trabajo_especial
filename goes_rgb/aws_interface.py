@@ -50,4 +50,46 @@ def download_goes_files_for_datetime(dt, product="ABI-L1b-RadC", channels=["C01"
 
     return downloaded_files
 
+def download_goes_files_for_datetime_2(
+    dt,
+    product="ABI-L1b-RadC",
+    channels=["C01", "C02", "C03"],
+    satellite="noaa-goes16",
+    local_dir="data",
+    mode="M6",  # Nuevo parámetro explícito
+):
+    import os
+    import s3fs
+
+    os.makedirs(local_dir, exist_ok=True)
+    fs = s3fs.S3FileSystem(anon=True)
+    year = dt.year
+    day_of_year = dt.timetuple().tm_yday
+    hour = dt.hour
+
+    prefix = f"{satellite}/{product}/{year}/{day_of_year:03d}/{hour:02d}/"
+    try:
+        files = fs.ls(prefix)
+    except FileNotFoundError:
+        print(f"No files found for prefix: {prefix}")
+        return []
+
+    downloaded_files = []
+    for channel in channels:
+        pattern = f"{mode}{channel}"
+        matched = [f for f in files if pattern in f and f.endswith(".nc")]
+        if not matched:
+            print(f"Canal {channel} no encontrado para {dt} con modo {mode}.")
+            continue
+        s3_url = "s3://" + matched[0]
+        filename = os.path.basename(matched[0])
+        local_path = os.path.join(local_dir, filename)
+        if not os.path.exists(local_path):
+            with fs.open(s3_url, 'rb') as s3_file, open(local_path, 'wb') as out_file:
+                out_file.write(s3_file.read())
+        downloaded_files.append(local_path)
+
+    return downloaded_files
+
+
 
