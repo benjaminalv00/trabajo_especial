@@ -17,7 +17,7 @@ trabajo_final/
 └── main.py                 # Script principal para correr todo el pipeline
 ```
 
-# Flujo lógico (en principio)
+#· Flujo lógico (en principio)
 
 **aws_interface.py**: lista archivos disponibles y descarga.
 
@@ -28,3 +28,10 @@ trabajo_final/
 **visualization.py**: grafica la imagen o la guarda.
 
 **main.py**: usa todo lo anterior para una fecha/canal.
+
+
+## Como activar el environment
+```
+conda env create -f environment.yml
+conda activate goes-env
+```
