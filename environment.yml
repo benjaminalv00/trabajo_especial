@@ -1,4 +1,3 @@
-# environment.yml
 name: goes-env
 channels:
   - conda-forge
@@ -14,8 +13,10 @@ dependencies:
   - pandas
   - ipykernel
   - jupyter
-  - cartopy 
-  # ...otras dependencias...
+  - cartopy
+  - rasterio
+  - pyproj
+  - gdal
   - pip
   - pip:
       - -e .

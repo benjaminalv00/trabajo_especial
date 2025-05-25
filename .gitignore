@@ -175,3 +175,4 @@ cython_debug/
 # Relativo al proyecto
 data/
 notebooks/data/
+*.tif*
