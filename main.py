@@ -1,124 +1,98 @@
+# Vamos a generar un producto RGB de microfisica diurna 
+
 from datetime import datetime
 from goes_rgb.aws_interface import *
 from goes_rgb.reader import *
+from goes_rgb.helpers import *
+from goes_rgb.processor import *
+from goes_rgb.visualization import *
 import matplotlib.pyplot as plt
 import os
 import cartopy.crs as ccrs  # Plot maps
+import cartopy.feature as cfeature
+from pyproj import Proj, transform
 
-# Vamos a hacer un pipeline simple de descarga de archivos GOES y posterior visualizacion
-# Basandonos en el practico 6 de satelitales 
 
 # Primero, vamos a descargar los archivos GOES para una fecha y hora especifica
-download_goes_files_for_datetime(datetime(2018, 4, 6, 15),channels=["C07","C13","C15"],product="ABI-L1b-RadF",satellite="noaa-goes16",local_dir="data")
-
+archivos = download_goes_files_for_datetime(datetime(2018, 12, 13, 7, 0),channels=["C07","C15","C13"],product="ABI-L1b-RadF",satellite="noaa-goes16",local_dir="data")
 # Listar los archivos descargados
-archivos = os.listdir("data")
 print("Archivos descargados:")
 for archivo in archivos:    
     print(archivo)
 
+imagenobj7 = open_goes_file(archivos[0])
+imagenobj15 = open_goes_file(archivos[1])
+imagenobj13 = open_goes_file(archivos[2])
 
-#%% Comenzando el procesamiento
+metadato7 = imagenobj7.variables
+metadato15 = imagenobj15.variables
+metadato13 = imagenobj13.variables
 
-for archivo in archivos:
-    print ('Importando la imagen: %s' %archivo)
-    imagenobj = open_goes_file(os.path.join("data",archivo))
-
-    metadato = imagenobj.variables
-    #breakpoint()
-    proyeccion = imagenobj['goes_imager_projection']
-    altura=proyeccion.perspective_point_height
-    semieje_may = proyeccion.semi_major_axis
-    semieje_men = proyeccion.semi_minor_axis
-    lon_cen = proyeccion.longitude_of_projection_origin
-
-    img_extent = (-5434894.67527,5434894.67527,-5434894.67527,5434894.67527) # De donde sale esto?
-    pol = semieje_may*altura/(semieje_may+altura)
-    ecu = semieje_men*altura/(semieje_may+altura)
-
-    icanal = int(metadato['band_id'][:])
-    print ('Canal %d' %icanal)
-
-    imagen = metadato['Rad'][:].data
+########################################ES IGUAL PARA LAS 3 BANDAS ################
+proyeccion=metadato13['goes_imager_projection'].attrs
+altura=proyeccion['perspective_point_height']
+semieje_may=proyeccion['semi_major_axis']
+semieje_men=proyeccion['semi_minor_axis']
+lon_cen=proyeccion['longitude_of_projection_origin']
 
 
-    # Nos salteamos la calibracion de la imagen por el momento 
-    print ('Calibrando la imagen')
-    if icanal >= 7:
-        #Parámetros de calibracion
-        fk1 = metadato['planck_fk1'].values # DN -> K
-        fk2 = metadato['planck_fk2'].values
-        bc1 = metadato['planck_bc1'].values
-        bc2 = metadato['planck_bc2'].values
+x = imagenobj13.coords['x'].values * altura  
+y = imagenobj13.coords['y'].values * altura
+
+pol=semieje_may*altura/(semieje_may+altura)
+ecu=semieje_men*altura/(semieje_may+altura)
 
 
-        imag_cal = (fk2 / (np.log((fk1 / imagen) + 1)) - bc1 ) / bc2 - 273.15 # K -> C
-        Unit = "Temperatura de Brillo [°C]"
-    else:
-        raise("Not implemented yet")
-        pendiente= metadato['Rad'].scale_factor
-        ordenada= metadato['Rad'].add_offset
-        imag_cal =imagen*pendiente+ordenada
-        Unit = "Radiancia ["+metadato['Rad'].units+"]"
-
-    # print("Graficando")
-
-    # No plotea igual que el practico 6, no se xq 
-    # plt.figure()
-
-    crs = ccrs.Geostationary(central_longitude=lon_cen, satellite_height=altura)#proyeccion geoestacionaria para Goes16
-    # ax = plt.axes(projection=crs)
-    # ax.gridlines() #agrega linea de meridianos y paralelos
-    # ax.coastlines(resolution='10m',color='blue') #agrega líneas de costa
-
-    # img = plt.imshow(imagen,extent=img_extent,vmin=-100.,vmax=30.,cmap='Greys')
-
-    # # Add a colorbar
-    # plt.colorbar(img, label='Brightness Temperatures (°C)', extend='both', orientation='vertical', pad=0.05, fraction=0.05)
-
-    # plt.show()
+# Definir la proyección geostacionaria
+crs = ccrs.Geostationary(central_longitude=lon_cen, satellite_height=altura)#proyeccion geoestacionaria para Goes16
 
 
-#%% Recortes crudos
-psize = 2000 # lado de pixel de referencia en m
-N = 5424 #numero de pixeles de referencia
+#### Recortes en lat/lon img original
+# lat_ini, lat_fin = -18.6, -56.45
+# lon_ini, lon_fin = -79.79, -50
 
-Nx = 2500 #numero de puntos del recorte en x
-Ny = 2000 #numero de puntos del recorte en x
-
-esc = int(imag_cal.shape[0]/N)
-
-x0 = -1700000 # Coordenada x del limite superior izquierdo en m
-y0 = -100000 # Coordenada y del limite superior izquierdo en m
-
-f0 = int((img_extent[1] - y0) / psize*esc) #fila del angulo superior izquierdo
-c0 = int((img_extent[3] + x0) / psize*esc) #columna del angulo superior izquierdo
-f1 = int(f0 + Nx*esc) #fila del angulo inferior derecho
-c1 = int(c0 + Ny*esc) #columna del angulo inferior derecho
-
-img_extentr=[x0,x0+Nx*psize*esc,y0-Ny*psize*esc,y0]
-
-indf=range(f0,f1,esc)
-indc=range(c0,c1,esc)
-im_rec=imag_cal[indf[0]:indf[-1],indc[0]:indc[-1]]
-
-fig, axs = plt.subplots(1, 2, figsize=(14, 6))
-
-# Primer subplot: imagen recortada simple
-img1 = axs[0].imshow(im_rec, vmin=-100., vmax=30., cmap='Greys')
-axs[0].set_title("Recorte crudo")
-fig.colorbar(img1, ax=axs[0], label='Brightness Temperatures (°C)', extend='both', orientation='vertical', pad=0.05, fraction=0.05)
-
-# Segundo subplot: imagen con proyección
-ax2 = plt.subplot(1, 2, 2, projection=crs)
-ax2.gridlines()
-ax2.coastlines(resolution='10m', color='blue')
-img2 = ax2.imshow(im_rec, transform=crs, extent=img_extentr, vmin=-100., vmax=30., cmap='Greys')
-fig.colorbar(img2, ax=ax2, label='Brightness Temperatures (°C)', extend='both', orientation='vertical', pad=0.05, fraction=0.05)
-ax2.set_title("Recorte con proyección")
-
-plt.tight_layout()
-plt.show()
+### Recortes en lat/lon cordoba
+lat_ini, lat_fin = -29.3, -35.5
+lon_ini, lon_fin = -60.5, -66.46
 
 
+f0_from_latlon, f1_from_latlon, c0_from_latlon, c1_from_latlon = get_pixel_indices_from_latlon_bbox(lat_ini, lat_fin, lon_ini, lon_fin, x, y, crs)
 
+#print(f0_from_latlon, f1_from_latlon, c0_from_latlon, c1_from_latlon)
+imagen13 = get_radiance_array(imagenobj13) #metadato13['Rad'][:].data
+imagen15 = get_radiance_array(imagenobj15) #metadato15['Rad'][:].data
+imagen7 = get_radiance_array(imagenobj7) #metadato7['Rad'][:].data
+
+
+imag_calibrate13 = calibrate_imag(imagen13[f0_from_latlon:f1_from_latlon, c0_from_latlon:c1_from_latlon], metadato13)
+imag_calibrate15 = calibrate_imag(imagen15[f0_from_latlon:f1_from_latlon, c0_from_latlon:c1_from_latlon], metadato15)
+imag_calibrate7 =calibrate_imag(imagen7[f0_from_latlon:f1_from_latlon, c0_from_latlon:c1_from_latlon], metadato7)
+
+[filas,columnas] = imag_calibrate7.shape
+
+imagen_RGB=np.zeros([filas,columnas,3])
+
+red_imagen = imag_calibrate15 - imag_calibrate13
+green_imagen = imag_calibrate13 - imag_calibrate7
+blue_imagen = imag_calibrate13
+
+realce_red = realce_gama(red_imagen, 1, 1, -6.7, 2.6)
+realce_green = realce_gama(green_imagen, 1, 1, -3.1, 5.2)
+realce_blue = realce_gama(blue_imagen, 1,  1, -29.6, 19.5)
+
+
+imagen_RGB[:,:,0] = realce_red
+imagen_RGB[:,:,1] = realce_green
+imagen_RGB[:,:,2] = realce_blue
+
+output_path = os.path.join("products", "Microfisica_nocturna.tif")
+
+# Guardamos en GeoTIFF
+save_rgb_geotiff(imagen_RGB, x, y, f0_from_latlon, f1_from_latlon, c0_from_latlon, c1_from_latlon, crs, output_path)
+# Ploteamos
+img_plot_extent = (x[c0_from_latlon], x[c1_from_latlon], y[f1_from_latlon], y[f0_from_latlon]) # (xmin, xmax, ymin, ymax)
+plot_rgb_with_coastlines(imagen_RGB, img_plot_extent, crs,
+                         title="RGB Microfisica Nocturna CBA",
+                         provincias_shp="shapefiles/provincias/linea_de_limite_070111Line.shp",
+                         show=True
+                         )
