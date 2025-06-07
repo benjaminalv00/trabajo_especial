@@ -4,6 +4,7 @@ import os
 import cartopy.crs as ccrs
 import cartopy.feature as cfeature
 import cartopy.io.shapereader as shpreader
+from cartopy.feature import ShapelyFeature
 
 
 def plot_radiance(radiancia, titulo="Radiancia", cmap="gray"):
@@ -31,23 +32,28 @@ def plot_rgb_with_coastlines(imagen_rgb, extent, crs_geo, title="Imagen GOES",pr
 
     ax.coastlines(resolution='50m', color='red')
     # Límites de países (mismo color que provincias)
-    ax.add_feature(cfeature.BORDERS, edgecolor='orange', linewidth=1)
+    ax.add_feature(cfeature.BORDERS, edgecolor='#00FF00', linewidth=1)
     
-    gl = ax.gridlines(draw_labels=True, color='gray', alpha=0.8, linestyle='--')
+    gl = ax.gridlines(draw_labels=True, color='gray', alpha=0.8, linestyle='--', linewidth=1.5)
     gl.top_labels = False
     gl.right_labels = False
 
-        # Agregar límites de provincias si se proporciona el shapefile
+    # Agrandar los ticks de lat/lon
+    gl.xlabel_style = {'size': 16}
+    gl.ylabel_style = {'size': 20}
+
+    # Agregar límites de provincias si se proporciona el shapefile
     if provincias_shp is not None:
         shp = shpreader.Reader(provincias_shp)
-        from cartopy.feature import ShapelyFeature
-        provincias = ShapelyFeature(shp.geometries(), ccrs.PlateCarree(), edgecolor='red', facecolor='none', linewidth=1)
+        provincias = ShapelyFeature(shp.geometries(), ccrs.PlateCarree(), edgecolor='#00FF00', facecolor='none', linewidth=1)
         ax.add_feature(provincias)
+    
+    
     
     
 
     plt.tight_layout()
-    plt.title(title)
+    #plt.title(title)
     # Save plot to file en carpeta products
     output_file = os.path.join("products", f"{title}.png")
     plt.savefig(output_file, dpi=300, bbox_inches='tight')

@@ -4,6 +4,30 @@ from rasterio.transform import from_bounds,from_origin
 from rasterio.crs import CRS
 import rasterio
 
+def calibrate_imag(imagen, metadato, U = 'T'):
+  canal = int(metadato['band_id'][:])
+  print('Calibrando la imagen', canal)
+  if canal >=7:
+      #Parámetros de calibracion
+      fk1 = metadato['planck_fk1'].values # DN -> K
+      fk2 = metadato['planck_fk2'].values
+      bc1 = metadato['planck_bc1'].values
+      bc2 = metadato['planck_bc2'].values
+
+      imag_cal = (fk2 / (np.log((fk1 / imagen) + 1)) - bc1 ) / bc2 - 273.15 # K -> C
+      Unit = "Temperatura de Brillo [°C]"
+  elif U=='Rad':
+      pendiente= metadato['Rad'].scale_factor
+      ordenada= metadato['Rad'].add_offset
+      imag_cal =imagen*pendiente+ordenada
+      Unit = "Radiancia ["+metadato['Rad'].units+"]"
+  elif U=='Ref':
+      raise("Not implemented yet")
+      kapa0 = metadato2['kappa0'][0].data
+      imag_cal = kapa0 * imagen
+      Unit = "Reflectancia"
+  return imag_cal
+
 def realce_gama(V, A, gama, Vmin, Vmax):
     Vaux = (V - Vmin) / (Vmax - Vmin)
     Vaux[Vaux<0] = 0
@@ -58,3 +82,24 @@ def save_rgb_geotiff(imagen_RGB, x, y, f0, f1, c0, c1, crs, output_path):
         dst.write(rgb_array[0], 1)
         dst.write(rgb_array[1], 2)
         dst.write(rgb_array[2], 3)
+
+import numpy as np
+from scipy.ndimage import zoom
+# Reescala una imagen (array 2D) al tamaño de otra usando interpolación, ver porque ya estaba en el practico (creo)
+def resample_to_shape(source_array, target_shape, order=1):
+    """
+    Reescala una imagen (array 2D) al tamaño de otra usando interpolación.
+
+    Parámetros:
+    - source_array: np.ndarray (2D), la imagen que querés reescalar.
+    - target_shape: tuple (rows, cols), tamaño deseado.
+    - order: int, orden de interpolación (1 = bilineal, 0 = nearest, 3 = bicúbica).
+
+    Retorna:
+    - array reescalado con shape = target_shape
+    """
+    zoom_factors = (
+        target_shape[0] / source_array.shape[0],
+        target_shape[1] / source_array.shape[1]
+    )
+    return zoom(source_array, zoom_factors, order=order)
