@@ -7,6 +7,7 @@ import rasterio
 def calibrate_imag(imagen, metadato, U = 'T'):
   canal = int(metadato['band_id'][:])
   print('Calibrando la imagen', canal)
+  imag_cal = imagen.copy()
   if canal >=7:
       #Parámetros de calibracion
       fk1 = metadato['planck_fk1'].values # DN -> K
@@ -21,7 +22,7 @@ def calibrate_imag(imagen, metadato, U = 'T'):
       ordenada= metadato['Rad'].add_offset
       imag_cal =imagen*pendiente+ordenada
       Unit = "Radiancia ["+metadato['Rad'].units+"]"
-  elif U=='Ref':
+  elif U=='Ref': #should do something with metadato2
       raise("Not implemented yet")
       kapa0 = metadato2['kappa0'][0].data
       imag_cal = kapa0 * imagen

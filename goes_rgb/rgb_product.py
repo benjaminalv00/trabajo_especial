@@ -12,7 +12,7 @@ class RGBProduct:
         R = self.recipe["R"](self.image)
         G = self.recipe["G"](self.image)
         B = self.recipe["B"](self.image)
-        # Asegurar que las bandas tengan la misma forma
+        # Asegurar que las bandas tengan la misma forma, capaz es mejor hacerlo dentro de la receta
         if R.shape != G.shape or R.shape != B.shape:
             #cambiar la resolucion de la roja
             R = resample_to_shape(R, G.shape)
