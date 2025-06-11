@@ -29,7 +29,7 @@ class ABIImage:
         return self.datasets[band]["ds"]["Rad"].values
 
     def get_projection_params(self):
-        ch = self.channels[0] # o cualquier canal
+        ch = self.channels[0] # o cualquier canal (ojo con la resolucion)
         ds = self.datasets[ch]["ds"]  # Dataset del primer canal como ejemplo
         proj_attrs = ds['goes_imager_projection'].attrs
         altura = proj_attrs['perspective_point_height']

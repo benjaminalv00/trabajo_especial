@@ -10,15 +10,18 @@ class RGBProcessor:
         self.recipes = recipes
         self.recorte = recorte
         self.products = {}
-    # Ojoo
+        self.calibrated_images = {}
+        #formas de hacerlo eficientes: solo calibrar segun las recipes
+        #self.calibrate_images()
+
     def calibrate_images(self):
         for band in self.abi_image.channels:
-            self.abi_image.get_band_array(band)
-            self.abi_image.datasets[band]["data"] = calibrate_imag(self.abi_image.get_band_array(band), 
-                           self.abi_image.datasets[band]["metadata"])
+            band_array = self.abi_image.get_band_array(band)
+            metadata = self.abi_image.datasets[band]["metadata"]
+            self.calibrated_images[band] = calibrate_imag(band_array, metadata)
     def generate_all(self):
         for name, recipe in self.recipes.items():
-            product = RGBProduct(self.abi_image, name, recipe,self.recorte)
+            product = RGBProduct(abi_image=self.abi_image, name=name, recipe=recipe, recorte=self.recorte, calibrated_images=self.calibrated_images)
             self.products[name] = product.build()
 
     def get_product(self, name):

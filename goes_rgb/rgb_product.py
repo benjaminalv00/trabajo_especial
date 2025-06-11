@@ -2,20 +2,31 @@ import numpy as np
 from goes_rgb.helpers import resample_to_shape
 
 class RGBProduct:
-    def __init__(self, abi_image, name, recipe,recorte=None):
+    def __init__(self, abi_image, name, calibrated_images, recipe, recorte=None):
         self.image = abi_image
         self.name = name
+        self.abi_image = abi_image
         self.recipe = recipe  # Dict con funciones R, G, B
-        self.recorte = recorte # Recorte de la imagen RGB 
+        self.recorte = recorte  # Recorte de la imagen RGB
+        self.calibrated_images = calibrated_images
 
     def build(self):
-        R = self.recipe["R"](self.image)
-        G = self.recipe["G"](self.image)
-        B = self.recipe["B"](self.image)
-        # Asegurar que las bandas tengan la misma forma, capaz es mejor hacerlo dentro de la receta
-        if R.shape != G.shape or R.shape != B.shape:
-            #cambiar la resolucion de la roja
-            R = resample_to_shape(R, G.shape)
+         # Determinar la resolución mínima entre todas las bandas calibradas
+        shapes = [img.shape for img in self.calibrated_images.values()]
+        target_shape = min(shapes, key=lambda x: x[0]*x[1])
+
+        # Resamplear todas las bandas calibradas a la resolución mínima
+        calibrated_resampled = {}
+        for band, img in self.calibrated_images.items():
+            if img.shape != target_shape:
+                calibrated_resampled[band] = resample_to_shape(img, target_shape)
+            else:
+                calibrated_resampled[band] = img
+
+        R = self.recipe["R"](self.calibrated_images)
+        G = self.recipe["G"](self.calibrated_images)
+        B = self.recipe["B"](self.calibrated_images)
+
         # Aplicar recorte si se especifica
         if self.recorte is not None:
             f0, f1, c0, c1 = self.recorte
@@ -24,4 +35,5 @@ class RGBProduct:
             B = B[f0:f1, c0:c1]
         rgb = np.stack([R, G, B], axis=-1)
         rgb = np.clip(rgb, 0, 1)
+
         return rgb

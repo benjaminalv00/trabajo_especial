@@ -22,9 +22,8 @@ def calibrate_imag(imagen, metadato, U = 'T'):
       ordenada= metadato['Rad'].add_offset
       imag_cal =imagen*pendiente+ordenada
       Unit = "Radiancia ["+metadato['Rad'].units+"]"
-  elif U=='Ref': #should do something with metadato2
-      raise("Not implemented yet")
-      kapa0 = metadato2['kappa0'][0].data
+  elif U=='Ref':
+      kapa0 = metadato['kappa0'][0].data #ojo seguro se rompe aca 
       imag_cal = kapa0 * imagen
       Unit = "Reflectancia"
   return imag_cal
