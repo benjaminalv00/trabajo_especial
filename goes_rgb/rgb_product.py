@@ -12,16 +12,16 @@ class RGBProduct:
 
     def build(self):
          # Determinar la resolución mínima entre todas las bandas calibradas
-        shapes = [img.shape for img in self.calibrated_images.values()]
-        target_shape = min(shapes, key=lambda x: x[0]*x[1])
+        # shapes = [img.shape for img in self.calibrated_images.values()]
+        # target_shape = min(shapes, key=lambda x: x[0]*x[1])
 
-        # Resamplear todas las bandas calibradas a la resolución mínima
-        calibrated_resampled = {}
-        for band, img in self.calibrated_images.items():
-            if img.shape != target_shape:
-                calibrated_resampled[band] = resample_to_shape(img, target_shape)
-            else:
-                calibrated_resampled[band] = img
+        # # Resamplear todas las bandas calibradas a la resolución mínima
+        # calibrated_resampled = {}
+        # for band, img in self.calibrated_images.items():
+        #     if img.shape != target_shape:
+        #         calibrated_resampled[band] = resample_to_shape(img, target_shape)
+        #     else:
+        #         calibrated_resampled[band] = img
 
         R = self.recipe["R"](self.calibrated_images)
         G = self.recipe["G"](self.calibrated_images)

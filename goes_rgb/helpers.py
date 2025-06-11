@@ -35,6 +35,32 @@ def realce_gama(V, A, gama, Vmin, Vmax):
     Vout = A * Vaux**gama
     return Vout
 
+# Función de realce lineal al p porciento
+def realce_p(vec, p=2):
+  aux = np.sort(vec.flatten())
+  imin = int(len(aux) * p / 100)
+  imax = int(len(aux) * (100 - p) / 100)
+  vmin = float(aux[imin])
+  vmax = float(aux[imax])
+  rimag = (vec - vmin) / (vmax - vmin)
+  rimag[rimag < 0] = 0
+  rimag[rimag > 1] = 1
+  return rimag
+
+def realce_percentil(arr, p=2):
+    """
+    Realce lineal saturando por percentiles, ignorando NaN.
+    """
+    if np.all(np.isnan(arr)):
+        return np.zeros_like(arr)
+    vmin = np.nanpercentile(arr, p)
+    vmax = np.nanpercentile(arr, 100 - p)
+    if vmax == vmin:
+        return np.zeros_like(arr)
+    out = (arr - vmin) / (vmax - vmin)
+    out = np.clip(out, 0, 1)
+    out[np.isnan(arr)] = 0  # Opcional: pon a cero los NaN originales
+    return out
 
 def get_pixel_indices_from_latlon_bbox(lat_min, lat_max, lon_min, lon_max, x, y, crs_geo):
     # Crear transformador de WGS84 → proyección geoestacionaria

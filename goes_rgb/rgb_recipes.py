@@ -1,12 +1,11 @@
 from goes_rgb.helpers import calibrate_imag
-from goes_rgb.helpers import realce_gama
+from goes_rgb.helpers import realce_gama,realce_p,realce_percentil
 import numpy as np
 def microfisica_nocturna():
     def R(img): 
         imag_cal_C15 = img["C15"]
         imag_cal_C13 = img["C13"]
         realce_red = realce_gama(imag_cal_C15 - imag_cal_C13,1,1,-6.7,2.6)
-        breakpoint()
         return realce_red 
     def G(img): 
         imag_cal_C13 = img["C13"]
@@ -23,25 +22,22 @@ def microfisica_nocturna():
 def true_color():
     #voy a tener que reescalar las bandas por la resolucion
     def R(img): 
-        imag_cal_C02 = img["C02"][::4,::4]
-        realce_red = realce_gama(imag_cal_C02, Vmin=imag_cal_C02.min(), Vmax=imag_cal_C02.max(), A=1, gama=1)
-        return imag_cal_C02
+        imag_cal_C02 = img["C02"]
+        realce_red = realce_percentil(imag_cal_C02)
+        return realce_red
     def G(img): 
-        #imag_cal_C03 = img["C03"][::2,::2]
-        #imag_cal_C02 = img["C02"][::4,::4]
-        #imag_cal_C01 = img["C01"][::2,::2]
-        #algebra = 0.45*imag_cal_C02 + 0.1*imag_cal_C03 + 0.45*imag_cal_C01
-        #realce_green = realce_gama(algebra, Vmin=algebra.min(), Vmax=algebra.max(), A=1, gama=1)
-        return np.zeros_like(img["C01"][::2,::2])  # Placeholder, no se usa C03 en true color
+        imag_cal_C03 = img["C03"]
+        imag_cal_C02 = img["C02"]
+        imag_cal_C01 = img["C01"]
+        algebra = 0.45*imag_cal_C02 + 0.1*imag_cal_C03 + 0.45*imag_cal_C01
+        return realce_percentil(algebra)
     def B(img):
-        imag_cal_C01 = img["C01"][::2,::2]
-        realce_blue = realce_gama(imag_cal_C01, Vmin=imag_cal_C01.min(), Vmax=imag_cal_C01.max(), A=1, gama=1)
-        return np.zeros_like(imag_cal_C01)
+        imag_cal_C01 = img["C01"]
+        return realce_percentil(imag_cal_C01)
 
     return {"R": R, "G": G, "B": B}
 
 
 # def fire_temperature():
-
 #     def R(img):
 
