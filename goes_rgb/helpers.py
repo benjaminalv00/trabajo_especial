@@ -1,51 +1,56 @@
 import numpy as np
 from pyproj import Transformer
-from rasterio.transform import from_bounds,from_origin
+from rasterio.transform import from_bounds, from_origin
 from rasterio.crs import CRS
 import rasterio
 
-def calibrate_imag(imagen, metadato, U = 'T'):
-  canal = int(metadato['band_id'][:])
-  print('Calibrando la imagen', canal)
-  imag_cal = imagen.copy()
-  if canal >=7:
-      #Parámetros de calibracion
-      fk1 = metadato['planck_fk1'].values # DN -> K
-      fk2 = metadato['planck_fk2'].values
-      bc1 = metadato['planck_bc1'].values
-      bc2 = metadato['planck_bc2'].values
 
-      imag_cal = (fk2 / (np.log((fk1 / imagen) + 1)) - bc1 ) / bc2 - 273.15 # K -> C
-      Unit = "Temperatura de Brillo [°C]"
-  elif U=='Rad':
-      pendiente= metadato['Rad'].scale_factor
-      ordenada= metadato['Rad'].add_offset
-      imag_cal =imagen*pendiente+ordenada
-      Unit = "Radiancia ["+metadato['Rad'].units+"]"
-  elif U=='Ref':
-      kapa0 = metadato['kappa0'][0].data #ojo seguro se rompe aca 
-      imag_cal = kapa0 * imagen
-      Unit = "Reflectancia"
-  return imag_cal
+def calibrate_imag(imagen, metadato, U="T"):
+    canal = int(metadato["band_id"][:])
+    print("Calibrando la imagen", canal)
+    imag_cal = imagen.copy()
+    if canal >= 7:
+        # Parámetros de calibracion
+        fk1 = metadato["planck_fk1"].values  # DN -> K
+        fk2 = metadato["planck_fk2"].values
+        bc1 = metadato["planck_bc1"].values
+        bc2 = metadato["planck_bc2"].values
+
+        imag_cal = (fk2 / (np.log((fk1 / imagen) + 1)) - bc1) / bc2 - 273.15  # K -> C
+        Unit = "Temperatura de Brillo [°C]"
+    elif U == "Rad":
+        pendiente = metadato["Rad"].scale_factor
+        ordenada = metadato["Rad"].add_offset
+        imag_cal = imagen * pendiente + ordenada
+        Unit = "Radiancia [" + metadato["Rad"].units + "]"
+    elif U == "Ref":
+        # breakpoint()
+        kapa0 = metadato["kappa0"].data  # ojo seguro se rompe aca
+        imag_cal = kapa0 * imagen
+        Unit = "Reflectancia"
+    return imag_cal
+
 
 def realce_gama(V, A, gama, Vmin, Vmax):
     Vaux = (V - Vmin) / (Vmax - Vmin)
-    Vaux[Vaux<0] = 0
-    Vaux[Vaux>1] = 1
-    Vout = A * Vaux**gama
+    Vaux[Vaux < 0] = 0
+    Vaux[Vaux > 1] = 1
+    Vout = A * Vaux ** (1 / gama)  # o simplemente gama
     return Vout
+
 
 # Función de realce lineal al p porciento
 def realce_p(vec, p=2):
-  aux = np.sort(vec.flatten())
-  imin = int(len(aux) * p / 100)
-  imax = int(len(aux) * (100 - p) / 100)
-  vmin = float(aux[imin])
-  vmax = float(aux[imax])
-  rimag = (vec - vmin) / (vmax - vmin)
-  rimag[rimag < 0] = 0
-  rimag[rimag > 1] = 1
-  return rimag
+    aux = np.sort(vec.flatten())
+    imin = int(len(aux) * p / 100)
+    imax = int(len(aux) * (100 - p) / 100)
+    vmin = float(aux[imin])
+    vmax = float(aux[imax])
+    rimag = (vec - vmin) / (vmax - vmin)
+    rimag[rimag < 0] = 0
+    rimag[rimag > 1] = 1
+    return rimag
+
 
 def realce_percentil(arr, p=2):
     """
@@ -62,7 +67,10 @@ def realce_percentil(arr, p=2):
     out[np.isnan(arr)] = 0  # Opcional: pon a cero los NaN originales
     return out
 
-def get_pixel_indices_from_latlon_bbox(lat_min, lat_max, lon_min, lon_max, x, y, crs_geo):
+
+def get_pixel_indices_from_latlon_bbox(
+    lat_min, lat_max, lon_min, lon_max, x, y, crs_geo
+):
     # Crear transformador de WGS84 → proyección geoestacionaria
     transformer = Transformer.from_crs("EPSG:4326", crs_geo, always_xy=True)
 
@@ -81,6 +89,7 @@ def get_pixel_indices_from_latlon_bbox(lat_min, lat_max, lon_min, lon_max, x, y,
     c0, c1 = sorted([c0, c1])
 
     return f0, f1, c0, c1
+
 
 def save_rgb_geotiff(imagen_RGB, x, y, f0, f1, c0, c1, crs, output_path):
     # Convertir a uint8 y transponer a (3, height, width)
@@ -109,8 +118,11 @@ def save_rgb_geotiff(imagen_RGB, x, y, f0, f1, c0, c1, crs, output_path):
         dst.write(rgb_array[1], 2)
         dst.write(rgb_array[2], 3)
 
+
 import numpy as np
 from scipy.ndimage import zoom
+
+
 # Reescala una imagen (array 2D) al tamaño de otra usando interpolación, ver porque ya estaba en el practico (creo)
 def resample_to_shape(source_array, target_shape, order=1):
     """
@@ -126,6 +138,6 @@ def resample_to_shape(source_array, target_shape, order=1):
     """
     zoom_factors = (
         target_shape[0] / source_array.shape[0],
-        target_shape[1] / source_array.shape[1]
+        target_shape[1] / source_array.shape[1],
     )
     return zoom(source_array, zoom_factors, order=order)
