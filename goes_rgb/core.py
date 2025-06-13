@@ -23,19 +23,39 @@ class ABIImage:
             ds = open_goes_file(path)
             band = f"C{ds.band_id.values.item():02}"
             metadata = ds.variables
-            self.datasets[band] = {"ds":ds, "metadata":metadata}
+            # Vamos a hacer que todas las bandas tengan la misma resolución
+            # Podemos asumir que las de mas baja resolucion es de 5424 x 5424
+            band_array = ds["Rad"].values
+            if band_array.shape == (10848, 10848): # resolucion 1 km
+                # Resamplear a 5424 x 5424
+                band_array = band_array[::2, ::2]
+            elif band_array.shape == (21696, 21696): # resolucion 0.5 km
+                # Resamplear a 5424 x 5424
+                band_array = band_array[::4, ::4]
+            elif band_array.shape == (5424, 5424): # resolucion 2 km
+                # Ya está en la resolución correcta
+                pass
+            self.datasets[band] = {"band_array":band_array, "metadata":metadata, "ds": ds}
+            #eliminamos el dataset para liberar memoria
+            ds.close()
+            # Ahora tenemos un diccionario con las bandas y sus metadatos
+            # Cada banda es un diccionario con "band_array" y "metadata"
+
 
     def get_band_array(self, band):
-        return self.datasets[band]["ds"]["Rad"].values
+        return self.datasets[band]["band_array"]
 
     def get_projection_params(self):
-        ch = self.channels[0] # o cualquier canal
+        ch = self.channels[0] # o cualquier canal (ojo con la resolucion)
         ds = self.datasets[ch]["ds"]  # Dataset del primer canal como ejemplo
         proj_attrs = ds['goes_imager_projection'].attrs
         altura = proj_attrs['perspective_point_height']
         lon_cen = proj_attrs['longitude_of_projection_origin']
         x = ds.coords['x'].values * altura
         y = ds.coords['y'].values * altura
+        if x.shape != (5424,):
+            x = x[::2]
+            y = y[::2]
         crs = ccrs.Geostationary(central_longitude=lon_cen, satellite_height=altura)
         return crs, x, y
 
