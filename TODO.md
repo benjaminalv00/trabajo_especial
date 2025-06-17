@@ -2,12 +2,13 @@
 
 
 ## High Prio
-- [ ] Mejorar manejo de errores en descargas
+- [ ] Ver alguna otra forma de manejar latlon grid?
 - [ ] Optimizar generación de GIF
 - [ ] Mejorar reescalado de las imagenes 
-- [ ] Ver alguna otra forma de manejar latlon grid?
+- [ ] Definir como vamos a hacer la calibracion 
 
 ## Medium Prio
+- [ ] Mejorar manejo de errores en descargas
 - [ ] Agregar barra de progreso para procesamiento
 - [ ] Documentar funciones principales
 - [ ] Agregar tests unitarios
