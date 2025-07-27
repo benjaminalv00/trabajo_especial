@@ -23,7 +23,7 @@ class RGBProcessor:
         for iband, band in enumerate(self.abi_image.channels):
             band_array = self.abi_image.get_band_array(band)
             metadata = self.abi_image.datasets[band]["metadata"]
-            kind = "T" if band in ["C07","C13","C08","C10","C12"] else "Ref"
+            kind = "T" if band in ["C07", "C13", "C08", "C10", "C12"] else "Ref"
             self.calibrated_images[band] = calibrate_imag(
                 band_array, metadata, U=kind
             )  # ojo porque depende de la banda

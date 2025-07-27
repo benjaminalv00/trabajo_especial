@@ -22,7 +22,7 @@ def calibrate_imag(imagen, metadato, U="T"):
         raise NotImplementedError(
             "La calibración de Radiancia no está implementada en este momento."
         )
-        # El problema es que no se encuentran las constantes para calibrar en el metadato 
+        # El problema es que no se encuentran las constantes para calibrar en el metadato
         pendiente = metadato["Rad"].scale_factor
         ordenada = metadato["Rad"].add_offset
         imag_cal = imagen * pendiente + ordenada

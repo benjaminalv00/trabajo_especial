@@ -1,4 +1,3 @@
-
 import rasterio
 from rasterio.warp import calculate_default_transform, reproject, Resampling
 from pyproj import CRS as PyCRS
@@ -11,14 +10,16 @@ with rasterio.open(src_path) as src:
     transform, width, height = calculate_default_transform(
         src.crs, dst_crs, src.width, src.height, *src.bounds
     )
-    
+
     kwargs = src.meta.copy()
-    kwargs.update({
-        "crs": dst_crs,
-        "transform": transform,
-        "width": width,
-        "height": height,
-    })
+    kwargs.update(
+        {
+            "crs": dst_crs,
+            "transform": transform,
+            "width": width,
+            "height": height,
+        }
+    )
 
     with rasterio.open(dst_path, "w", **kwargs) as dst:
         for i in range(1, src.count + 1):
@@ -29,5 +30,5 @@ with rasterio.open(src_path) as src:
                 src_crs=src.crs,
                 dst_transform=transform,
                 dst_crs=dst_crs,
-                resampling=Resampling.nearest
+                resampling=Resampling.nearest,
             )

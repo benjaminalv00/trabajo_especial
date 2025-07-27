@@ -24,24 +24,26 @@ def microfisica_nocturna():
 
     return {"R": R, "G": G, "B": B}
 
+
 def daily_microphysics():
 
-    def R(img): 
+    def R(img):
         imag_cal_C13 = img["C13"]
         realce_red = realce_gama(imag_cal_C13, 1, 1, 7.5, -53.5)
         return realce_red
-    
+
     def G(img):
         imag_cal_C02 = img["C02"]
-        realce_green = realce_gama(imag_cal_C02, 1, 1, 0, .78)
+        realce_green = realce_gama(imag_cal_C02, 1, 1, 0, 0.78)
         return realce_green
-    
+
     def B(img):
         imag_cal_C05 = img["C05"]
-        realce_blue = realce_gama(imag_cal_C05, 1, 1, .01, .59)
+        realce_blue = realce_gama(imag_cal_C05, 1, 1, 0.01, 0.59)
         return realce_blue
-    
+
     return {"R": R, "G": G, "B": B}
+
 
 def true_color():
     # voy a tener que reescalar las bandas por la resolucion
@@ -83,6 +85,7 @@ def fire_temperature():
 
     return {"R": R, "G": G, "B": B}
 
+
 def fire_temperature_2():
 
     def R(img):
@@ -101,6 +104,7 @@ def fire_temperature_2():
         return realce_blue
 
     return {"R": R, "G": G, "B": B}
+
 
 def fire_temperature_3():
 
@@ -121,23 +125,24 @@ def fire_temperature_3():
 
     return {"R": R, "G": G, "B": B}
 
+
 def air_mass():
 
     def R(img):
-        imag_cal_C08 = img["C08"] # 6.2
-        imag_cal_C10 = img["C10"] # 7.3
+        imag_cal_C08 = img["C08"]  # 6.2
+        imag_cal_C10 = img["C10"]  # 7.3
         realce_red = realce_gama(imag_cal_C08 - imag_cal_C10, 1, 1, -26.2, 0.6)
         return realce_red
 
     def G(img):
-        imag_cal_C12 = img["C12"] #9.6 
-        imag_cal_C13 = img["C13"] #10.3 
-        realce_green = realce_gama(imag_cal_C12 - imag_cal_C13,1,1, -43.2, 6.7)
+        imag_cal_C12 = img["C12"]  # 9.6
+        imag_cal_C13 = img["C13"]  # 10.3
+        realce_green = realce_gama(imag_cal_C12 - imag_cal_C13, 1, 1, -43.2, 6.7)
         return realce_green
 
     def B(img):
-        imag_cal_C08 = img["C08"] # va invertida
-        realce_blue = realce_gama((1-imag_cal_C08), 1, 1, -29.25, -64.65)
+        imag_cal_C08 = img["C08"]  # va invertida
+        realce_blue = realce_gama((1 - imag_cal_C08), 1, 1, -29.25, -64.65)
         return realce_blue
 
-    return {"R": R, "G": G, "B": B}  
+    return {"R": R, "G": G, "B": B}

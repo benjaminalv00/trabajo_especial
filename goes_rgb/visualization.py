@@ -15,7 +15,18 @@ def plot_radiance(radiancia, titulo="Radiancia", cmap="gray"):
     plt.colorbar(label="Radiancia")
     plt.show()
 
-def plot_rgb_with_coastlines(imagen_rgb, extent, crs_geo, title="Imagen GOES",provincias_shp=None,show=True,lon_interval=2, lat_interval=2,save=False):
+
+def plot_rgb_with_coastlines(
+    imagen_rgb,
+    extent,
+    crs_geo,
+    title="Imagen GOES",
+    provincias_shp=None,
+    show=True,
+    lon_interval=2,
+    lat_interval=2,
+    save=False,
+):
     """
     Muestra una imagen RGB con líneas de costa y líneas de latitud/longitud.
 
@@ -28,43 +39,66 @@ def plot_rgb_with_coastlines(imagen_rgb, extent, crs_geo, title="Imagen GOES",pr
     fig = plt.figure(figsize=(10, 10))
     ax = plt.axes(projection=crs_geo)
 
-    ax.imshow(imagen_rgb, origin='upper', extent=extent, transform=crs_geo,vmin=0, vmax=1)
+    ax.imshow(
+        imagen_rgb, origin="upper", extent=extent, transform=crs_geo, vmin=0, vmax=1
+    )
 
-    ax.coastlines(resolution='50m', color='red')
+    ax.coastlines(resolution="50m", color="red")
     # Límites de países (mismo color que provincias)
-    ax.add_feature(cfeature.BORDERS, edgecolor='#00FF00', linewidth=1)
-    
-    gl = ax.gridlines(draw_labels=True, color='gray', alpha=0.8, linestyle='--', linewidth=1.5)
+    ax.add_feature(cfeature.BORDERS, edgecolor="#00FF00", linewidth=1)
+
+    gl = ax.gridlines(
+        draw_labels=True, color="gray", alpha=0.8, linestyle="--", linewidth=1.5
+    )
     gl.bottom_labels = False
     gl.right_labels = False
 
     # Agrandar los ticks de lat/lon
-    gl.xlabel_style = {'size': 20}
-    gl.ylabel_style = {'size': 20}
+    gl.xlabel_style = {"size": 20}
+    gl.ylabel_style = {"size": 20}
 
-    #cada cuántos grados ponemos las líneas:
+    # cada cuántos grados ponemos las líneas:
     import numpy as np
+
     gl.xlocator = plt.FixedLocator(np.arange(-180, 181, lon_interval))
     gl.ylocator = plt.FixedLocator(np.arange(-90, 91, lat_interval))
 
     # Agregar límites de provincias si se proporciona el shapefile
     if provincias_shp is not None:
         shp = shpreader.Reader(provincias_shp)
-        provincias = ShapelyFeature(shp.geometries(), ccrs.PlateCarree(), edgecolor='#00FF00', facecolor='none', linewidth=1)
+        provincias = ShapelyFeature(
+            shp.geometries(),
+            ccrs.PlateCarree(),
+            edgecolor="#00FF00",
+            facecolor="none",
+            linewidth=1,
+        )
         ax.add_feature(provincias)
-    
+
     plt.tight_layout()
     plt.title(title, fontsize=20)
     # Save plot to file en carpeta products
     output_file = os.path.join("products", f"{title}.png")
-    if save: 
-        plt.savefig(output_file, dpi=300, bbox_inches='tight')
+    if save:
+        plt.savefig(output_file, dpi=300, bbox_inches="tight")
         print(f"Gráfico guardado en {output_file}")
     if show:
         plt.show()
     return fig
 
-def plot_band_with_coastlines(banda, extent, crs_geo, title="Banda GOES", provincias_shp=None, show=True, lon_interval=2, lat_interval=2, save=False, cmap="gray"):
+
+def plot_band_with_coastlines(
+    banda,
+    extent,
+    crs_geo,
+    title="Banda GOES",
+    provincias_shp=None,
+    show=True,
+    lon_interval=2,
+    lat_interval=2,
+    save=False,
+    cmap="gray",
+):
     """
     Muestra una banda (2D) con líneas de costa y líneas de latitud/longitud.
 
@@ -83,37 +117,45 @@ def plot_band_with_coastlines(banda, extent, crs_geo, title="Banda GOES", provin
     fig = plt.figure(figsize=(10, 10))
     ax = plt.axes(projection=crs_geo)
 
-    im = ax.imshow(banda, origin='upper', extent=extent, transform=crs_geo, cmap=cmap)
-    ax.coastlines(resolution='50m', color='red')
-    ax.add_feature(cfeature.BORDERS, edgecolor='#00FF00', linewidth=1)
+    im = ax.imshow(banda, origin="upper", extent=extent, transform=crs_geo, cmap=cmap)
+    ax.coastlines(resolution="50m", color="red")
+    ax.add_feature(cfeature.BORDERS, edgecolor="#00FF00", linewidth=1)
 
-    gl = ax.gridlines(draw_labels=True, color='gray', alpha=0.8, linestyle='--', linewidth=1.5)
+    gl = ax.gridlines(
+        draw_labels=True, color="gray", alpha=0.8, linestyle="--", linewidth=1.5
+    )
     gl.bottom_labels = False
     gl.right_labels = False
-    gl.xlabel_style = {'size': 20}
-    gl.ylabel_style = {'size': 20}
+    gl.xlabel_style = {"size": 20}
+    gl.ylabel_style = {"size": 20}
 
     import numpy as np
+
     gl.xlocator = plt.FixedLocator(np.arange(-180, 181, lon_interval))
     gl.ylocator = plt.FixedLocator(np.arange(-90, 91, lat_interval))
 
     if provincias_shp is not None:
         shp = shpreader.Reader(provincias_shp)
-        provincias = ShapelyFeature(shp.geometries(), ccrs.PlateCarree(), edgecolor='#00FF00', facecolor='none', linewidth=1)
+        provincias = ShapelyFeature(
+            shp.geometries(),
+            ccrs.PlateCarree(),
+            edgecolor="#00FF00",
+            facecolor="none",
+            linewidth=1,
+        )
         ax.add_feature(provincias)
 
     plt.tight_layout()
     plt.title(title, fontsize=20)
-    #cbar = plt.colorbar(im, ax=ax, orientation='vertical', fraction=0.046, pad=0.04)
-    #cbar.set_label("Valor de banda", fontsize=16)
+    # cbar = plt.colorbar(im, ax=ax, orientation='vertical', fraction=0.046, pad=0.04)
+    # cbar.set_label("Valor de banda", fontsize=16)
 
     output_file = os.path.join("products", f"{title}.png")
     if save:
-        plt.savefig(output_file, dpi=300, bbox_inches='tight')
+        plt.savefig(output_file, dpi=300, bbox_inches="tight")
     if show:
         plt.show()
     else:
         print(f"Gráfico guardado en {output_file}")
 
     return fig
-
