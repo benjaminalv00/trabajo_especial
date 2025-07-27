@@ -176,3 +176,5 @@ cython_debug/
 data/
 notebooks/data/
 *.tif*
+products/*
+notebooks/ 

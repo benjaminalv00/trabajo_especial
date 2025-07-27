@@ -53,7 +53,7 @@ class ABIImage:
         lon_cen = proj_attrs['longitude_of_projection_origin']
         x = ds.coords['x'].values * altura
         y = ds.coords['y'].values * altura
-        if x.shape != (5424,):
+        while x.shape != (5424,):
             x = x[::2]
             y = y[::2]
         crs = ccrs.Geostationary(central_longitude=lon_cen, satellite_height=altura)

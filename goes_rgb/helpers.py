@@ -19,13 +19,16 @@ def calibrate_imag(imagen, metadato, U="T"):
         imag_cal = (fk2 / (np.log((fk1 / imagen) + 1)) - bc1) / bc2 - 273.15  # K -> C
         Unit = "Temperatura de Brillo [°C]"
     elif U == "Rad":
+        raise NotImplementedError(
+            "La calibración de Radiancia no está implementada en este momento."
+        )
+        # El problema es que no se encuentran las constantes para calibrar en el metadato 
         pendiente = metadato["Rad"].scale_factor
         ordenada = metadato["Rad"].add_offset
         imag_cal = imagen * pendiente + ordenada
         Unit = "Radiancia [" + metadato["Rad"].units + "]"
     elif U == "Ref":
-        # breakpoint()
-        kapa0 = metadato["kappa0"].data  # ojo seguro se rompe aca
+        kapa0 = metadato["kappa0"].data
         imag_cal = kapa0 * imagen
         Unit = "Reflectancia"
     return imag_cal

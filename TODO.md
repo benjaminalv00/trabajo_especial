@@ -13,3 +13,6 @@
 - [ ] Documentar funciones principales
 - [ ] Agregar tests unitarios
 - [ ] Automatizar limpieza de archivos temporales
+
+## Dudas 
+- [ ] Calibracion por radiancia 

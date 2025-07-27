@@ -83,6 +83,44 @@ def fire_temperature():
 
     return {"R": R, "G": G, "B": B}
 
+def fire_temperature_2():
+
+    def R(img):
+        imag_cal_C13 = img["C13"]
+        realce_red = realce_gama(imag_cal_C13, 1, 0.4, 0, 60)
+        return realce_red
+
+    def G(img):
+        imag_cal_C06 = img["C06"]
+        realce_green = realce_gama(imag_cal_C06, 1, 1, 0, 1)
+        return realce_green
+
+    def B(img):
+        imag_cal_C05 = img["C05"]
+        realce_blue = realce_gama(imag_cal_C05, 1, 1, 0, 0.75)
+        return realce_blue
+
+    return {"R": R, "G": G, "B": B}
+
+def fire_temperature_3():
+
+    def R(img):
+        imag_cal_C14 = img["C14"]
+        realce_red = realce_gama(imag_cal_C14, 1, 0.4, 0, 60)
+        return realce_red
+
+    def G(img):
+        imag_cal_C06 = img["C06"]
+        realce_green = realce_gama(imag_cal_C06, 1, 1, 0, 1)
+        return realce_green
+
+    def B(img):
+        imag_cal_C05 = img["C05"]
+        realce_blue = realce_gama(imag_cal_C05, 1, 1, 0, 0.75)
+        return realce_blue
+
+    return {"R": R, "G": G, "B": B}
+
 def air_mass():
 
     def R(img):

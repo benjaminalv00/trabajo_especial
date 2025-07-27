@@ -8,14 +8,14 @@ import numpy as np
 
 # Instanciar imagen ABI
 # bands = ["C01", "C02", "C03", "C04", "C05", "C06", "C07", "C08", "C09", "C10", "C11", "C12", "C13", "C14", "C15"]
-# bands = ["C07", "C06", "C05"]
+bands = ["C07", "C06", "C05"]
 # bands = ["C13","C02","C05"]
-bands = ["C08","C10","C12","C13"]
+#bands = ["C08","C10","C12","C13"]
 # bands = ["C03", "C02", "C01"]  # Bandas para el producto RGB Color Real
 # bands = ['C15', 'C13', 'C07']  # Bandas para el producto RGB Microfisica Nocturna
-# img = ABIImage(datetime(2024, 9, 21, 7, 0), "ABI-L1b-RadF", full_bands)
+img = ABIImage(datetime(2024, 9, 21, 18, 0), "ABI-L1b-RadF", bands)
 
-img = ABIImage(datetime(2018, 7, 13, 18, 0), "ABI-L1b-RadF", bands)
+#img = ABIImage(datetime(2018, 7, 13, 18, 0), "ABI-L1b-RadF", bands)
 
 img.download()
 img.open()
@@ -23,9 +23,9 @@ img.open()
 recipes = {
     #"Microfisica Nocturna": microfisica_nocturna(),
     #"Color Real": true_color(),
-    #"Temperatura de Fuego": fire_temperature(),
+    "Temperatura de Fuego": fire_temperature(),
     #"Microfisica Diurna": daily_microphysics(),
-    "Masa de aire": air_mass(),
+    #"Masa de aire": air_mass(),
 }
 
 # Obtener parámetros de proyección
@@ -41,7 +41,7 @@ processor = RGBProcessor(abi_image=img, recipes=recipes, recorte=(f0, f1, c0, c1
 processor.generate_all()
 # Acceder al producto
 rgb = processor.get_product(
-    "Masas de aire"
+    "Temperatura de Fuego"
 )  # Cambiar a "Microfisica Nocturna" o "Temperatura de Fuego" según sea necesario
 # Visualizar
 extent = (x[c0], x[c1], y[f1], y[f0])
