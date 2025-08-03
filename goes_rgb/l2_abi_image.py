@@ -39,9 +39,23 @@ class ABIImageMCMI(BaseABIImage):
 
     def get_calibrated_data(self):
         # Implementación específica para calibrar bandas MCMI
-        # En este caso, simplemente se copia el array sin calibración adicional
+        # En este caso, simplemente se copia el array sin calibración adicional. Pasamos las bandas emisivas a grados celsius
         for band in self.channels:
             self.calibrated_data[band] = self.datasets[band]["band_array"].copy()
+            if band in [
+                "C07",
+                "C08",
+                "C09",
+                "C10",
+                "C11",
+                "C12",
+                "C13",
+                "C14",
+                "C15",
+                "C16",
+            ]:
+                # breakpoint()
+                self.calibrated_data[band] -= 273.15  # Convertir a Celsius
         return self.calibrated_data
 
     def get_projection_params(self):

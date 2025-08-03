@@ -9,8 +9,6 @@ def microfisica_nocturna():
         imag_cal_C15 = img["C15"]
         imag_cal_C13 = img["C13"]
         # primero pasamos de kelvin a celsius (localmente)
-        imag_cal_C15 = imag_cal_C15 - 273.15
-        imag_cal_C13 = imag_cal_C13 - 273.15
         realce_red = realce_gama(imag_cal_C15 - imag_cal_C13, 1, 1, -6.7, 2.6)
         return realce_red
 
@@ -18,15 +16,12 @@ def microfisica_nocturna():
         imag_cal_C13 = img["C13"]
         imag_cal_C07 = img["C07"]
         # primero pasamos de kelvin a celsius (localmente)
-        imag_cal_C13 = imag_cal_C13 - 273.15
-        imag_cal_C07 = imag_cal_C07 - 273.15
         realce_green = realce_gama(imag_cal_C13 - imag_cal_C07, 1, 1, -3.1, 5.2)
         return realce_green
 
     def B(img):
         imag_cal_C13 = img["C13"]
         # primero pasamos de kelvin a celsius (localmente)
-        imag_cal_C13 = imag_cal_C13 - 273.15
         realce_blue = realce_gama(imag_cal_C13, 1, 1, -29.6, 19.5)
         return realce_blue
 
@@ -37,8 +32,7 @@ def daily_microphysics():
 
     def R(img):
         imag_cal_C13 = img["C13"]
-        # como la banda 13 es emision termica, la paso a celsius
-        imag_cal_C13 = imag_cal_C13 - 273.15
+        # como la banda 13 es
         realce_red = realce_gama(imag_cal_C13, 1, 1, 7.5, -53.5)
         return realce_red
 
