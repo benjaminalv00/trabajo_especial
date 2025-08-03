@@ -24,8 +24,8 @@ def list_goes_files_2(product, dt, satellite="noaa-goes16"):
 
 def download_goes_files_for_datetime(
     dt,
-    product="ABI-L1b-RadC",
-    channels=["C01", "C02", "C03"],
+    product="ABI-L2-MCMIPF",
+    channels=[f"C{str(i).zfill(2)}" for i in range(1, 16)],
     satellite="noaa-goes16",
     local_dir="data",
 ):
@@ -43,11 +43,12 @@ def download_goes_files_for_datetime(
         return []
 
     downloaded_files = []
-    for channel in channels:
-        matched = [f for f in files if channel in f and f.endswith(".nc")]
+    if product == "ABI-L2-MCMIPF":
+        # Todos los canales están en un solo archivo NetCDF
+        matched = [f for f in files if f.endswith(".nc")]
         if not matched:
-            print(f"Canal {channel} no encontrado para {dt}.")
-            continue
+            print(f"No se encontraron archivos para {dt}.")
+            return []
         s3_url = "s3://" + matched[0]
         filename = os.path.basename(matched[0])
         local_path = os.path.join(local_dir, filename)
@@ -59,5 +60,26 @@ def download_goes_files_for_datetime(
         else:
             print(f"{filename} ya existe, omitiendo descarga.")
         downloaded_files.append(local_path)
+
+    elif product == "ABI-L1b-RadF":
+        # Archivos individuales por banda
+        for channel in channels:
+            matched = [f for f in files if channel in f and f.endswith(".nc")]
+            if not matched:
+                print(f"Canal {channel} no encontrado para {dt}.")
+                continue
+            s3_url = "s3://" + matched[0]
+            filename = os.path.basename(matched[0])
+            local_path = os.path.join(local_dir, filename)
+            if not os.path.exists(local_path):
+                print(f"Descargando {filename} ...")
+                with fs.open(s3_url, "rb") as s3_file, open(
+                    local_path, "wb"
+                ) as out_file:
+                    out_file.write(s3_file.read())
+                print("Listo.")
+            else:
+                print(f"{filename} ya existe, omitiendo descarga.")
+            downloaded_files.append(local_path)
 
     return downloaded_files

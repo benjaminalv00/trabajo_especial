@@ -6,6 +6,12 @@ import rasterio
 
 
 def calibrate_imag(imagen, metadato, U="T"):
+    # breakpoint()
+    # <class 'numpy.ndarray'>
+    # <class 'xarray.core.utils.Frozen'>
+    # VS
+    # <class 'xarray.core.variable.Variable'>
+    # <class 'xarray.core.variable.Variable'>
     canal = int(metadato["band_id"][:])
     print("Calibrando la imagen", canal)
     imag_cal = imagen.copy()
