@@ -7,6 +7,8 @@ from goes_rgb.rgb_recipes import (
     fire_temperature,
     daily_microphysics,
     air_mass,
+    ash,
+    day_cloud_convection,
 )
 from goes_rgb.visualization import plot_rgb_with_coastlines
 from goes_rgb.helpers import save_rgb_geotiff
@@ -22,10 +24,12 @@ img.open()
 # productos RGB seleccionados
 recipes = {
     # "Microfisica Nocturna": microfisica_nocturna(),
-    "Color Real": true_color(),
+    # "Color Real": true_color(),
     # "Temperatura de Fuego": fire_temperature(),
     # "Microfisica Diurna": daily_microphysics(),
     # "Masa de aire": air_mass(),
+    # "Cenizas": ash()
+    "Convección de Nubes Diurna": day_cloud_convection(),
 }
 
 # Obtener parámetros de proyección
@@ -40,16 +44,29 @@ f0, f1, c0, c1 = img.get_bbox_indices(-18.6, -56.45, -79.79, -50.0)
 processor = RGBProcessor(abi_image=img, recipes=recipes, recorte=(f0, f1, c0, c1))
 processor.generate_all()
 # Acceder al producto
-rgb = processor.get_product(
-    "Color Real"  # "Microfisica Diurna"  # Cambiar a "Microfisica Nocturna" o "Temperatura de Fuego" según sea necesario
-)  # Cambiar a "Microfisica Nocturna" o "Temperatura de Fuego" según sea necesario
+
+for recipe in recipes:
+    print(f"Producto: {recipe}")
+    rgb = processor.get_product(recipe)
+    # Guardar como GeoTIFF
+    plot_rgb_with_coastlines(
+        rgb,
+        extent=(x[c0], x[c1], y[f1], y[f0]),
+        crs_geo=crs,
+        title=f"RGB - {recipe}",
+        provincias_shp="shapefiles/provincias/linea_de_limite_070111Line.shp",
+        show=True,
+    )
+# rgb = processor.get_product(
+#     "Microfisica Nocturna" #"Color Real"  # "Microfisica Diurna"  # Cambiar a "Microfisica Nocturna" o "Temperatura de Fuego" según sea necesario
+# )  # Cambiar a "Microfisica Nocturna" o "Temperatura de Fuego" según sea necesario
 # Visualizar
-extent = (x[c0], x[c1], y[f1], y[f0])
-plot_rgb_with_coastlines(
-    rgb,
-    extent,
-    crs,
-    title="RGB",
-    provincias_shp="shapefiles/provincias/linea_de_limite_070111Line.shp",
-    show=True,
-)
+# extent = (x[c0], x[c1], y[f1], y[f0])
+# plot_rgb_with_coastlines(
+#     rgb,
+#     extent,
+#     crs,
+#     title="RGB",
+#     provincias_shp="shapefiles/provincias/linea_de_limite_070111Line.shp",
+#     show=True,
+# )

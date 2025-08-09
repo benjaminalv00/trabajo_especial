@@ -6,12 +6,9 @@ import rasterio
 
 
 def calibrate_imag(imagen, metadato, U="T"):
-    # breakpoint()
-    # <class 'numpy.ndarray'>
-    # <class 'xarray.core.utils.Frozen'>
-    # VS
-    # <class 'xarray.core.variable.Variable'>
-    # <class 'xarray.core.variable.Variable'>
+    """
+    Calibrar una imagen de GOES L1b según el metadato.
+    """
     canal = int(metadato["band_id"][:])
     print("Calibrando la imagen", canal)
     imag_cal = imagen.copy()
@@ -150,3 +147,12 @@ def resample_to_shape(source_array, target_shape, order=1):
         target_shape[1] / source_array.shape[1],
     )
     return zoom(source_array, zoom_factors, order=order)
+
+
+def band_is_emissive(band):
+    """
+    Verifica si una banda es emisiva.
+    """
+    # Definir las bandas emisivas según la especificación de GOES
+    emisive_bands = ["C07", "C08", "C09", "C10", "C11", "C12", "C13", "C14", "C15"]
+    return band in emisive_bands

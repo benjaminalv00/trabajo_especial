@@ -20,7 +20,6 @@ class ABIImage:
         self.local_dir = local_dir
         self.files = []
         self.datasets = {}
-        self.mcmi_ds = None  # Dataset para MCMI si se usa el producto L2. Ver de abstraerse y que todo quede en datasets
 
     def download(self):
         self.files = download_goes_files_for_datetime(

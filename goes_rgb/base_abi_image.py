@@ -42,15 +42,15 @@ class BaseABIImage(ABC):
         pass
 
     @abstractmethod
-    def get_calibrated_data(self):
-        """
-        Método abstracto para obtener los datos calibrados de las bandas.
-        Cada clase concreta debe implementar su propia lógica de calibración.
-        """
+    def get_projection_params(self):
         pass
 
     @abstractmethod
-    def get_projection_params(self):
+    def calibrate_band(self, band, raw_data, unit=None):
+        """
+        Método abstracto para calibrar una banda específica.
+        Cada clase concreta debe implementar su propia lógica de calibración.
+        """
         pass
 
     def get_band_array(self, band):

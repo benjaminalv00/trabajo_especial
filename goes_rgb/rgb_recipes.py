@@ -25,7 +25,11 @@ def microfisica_nocturna():
         realce_blue = realce_gama(imag_cal_C13, 1, 1, -29.6, 19.5)
         return realce_blue
 
-    return {"R": R, "G": G, "B": B}
+    return {
+        "funcs": {"R": R, "G": G, "B": B},
+        "bands": ["C07", "C13", "C15"],
+        "emissive_units": {"C07": "celsius", "C13": "celsius", "C15": "celsius"},
+    }
 
 
 def daily_microphysics():
@@ -46,7 +50,11 @@ def daily_microphysics():
         realce_blue = realce_gama(imag_cal_C05, 1, 1, 0.01, 0.59)
         return realce_blue
 
-    return {"R": R, "G": G, "B": B}
+    return {
+        "funcs": {"R": R, "G": G, "B": B},
+        "bands": ["C13", "C02", "C05"],
+        "emissive_units": {"C13": "celsius"},
+    }
 
 
 def true_color():
@@ -68,7 +76,12 @@ def true_color():
         imag_cal_C01 = img["C01"]
         return realce_percentil(imag_cal_C01)
 
-    return {"R": R, "G": G, "B": B}
+    # return {"R": R, "G": G, "B": B}
+    return {
+        "funcs": {"R": R, "G": G, "B": B},
+        "bands": ["C01", "C02", "C03"],
+        "emissive_units": {},
+    }
 
 
 def fire_temperature():
@@ -88,47 +101,11 @@ def fire_temperature():
         realce_blue = realce_gama(imag_cal_C05, 1, 1, 0, 0.75)
         return realce_blue
 
-    return {"R": R, "G": G, "B": B}
-
-
-def fire_temperature_2():
-
-    def R(img):
-        imag_cal_C13 = img["C13"]
-        realce_red = realce_gama(imag_cal_C13, 1, 0.4, 0, 60)
-        return realce_red
-
-    def G(img):
-        imag_cal_C06 = img["C06"]
-        realce_green = realce_gama(imag_cal_C06, 1, 1, 0, 1)
-        return realce_green
-
-    def B(img):
-        imag_cal_C05 = img["C05"]
-        realce_blue = realce_gama(imag_cal_C05, 1, 1, 0, 0.75)
-        return realce_blue
-
-    return {"R": R, "G": G, "B": B}
-
-
-def fire_temperature_3():
-
-    def R(img):
-        imag_cal_C14 = img["C14"]
-        realce_red = realce_gama(imag_cal_C14, 1, 0.4, 0, 60)
-        return realce_red
-
-    def G(img):
-        imag_cal_C06 = img["C06"]
-        realce_green = realce_gama(imag_cal_C06, 1, 1, 0, 1)
-        return realce_green
-
-    def B(img):
-        imag_cal_C05 = img["C05"]
-        realce_blue = realce_gama(imag_cal_C05, 1, 1, 0, 0.75)
-        return realce_blue
-
-    return {"R": R, "G": G, "B": B}
+    return {
+        "funcs": {"R": R, "G": G, "B": B},
+        "bands": ["C07", "C06", "C05"],
+        "emissive_units": {"C07": "celsius"},
+    }
 
 
 def air_mass():
@@ -150,4 +127,71 @@ def air_mass():
         realce_blue = realce_gama((1 - imag_cal_C08), 1, 1, -29.25, -64.65)
         return realce_blue
 
-    return {"R": R, "G": G, "B": B}
+    return {
+        "funcs": {"R": R, "G": G, "B": B},
+        "bands": ["C08", "C10", "C12", "C13"],
+        "emissive_units": {
+            "C08": "celsius",
+            "C10": "celsius",
+            "C12": "celsius",
+            "C13": "celsius",
+        },
+    }
+
+
+def ash():
+
+    def R(img):
+        imag_cal_C15 = img["C15"]
+        imag_cal_C13 = img["C13"]
+        realce_red = realce_gama(imag_cal_C15 - imag_cal_C13, 1, 1, -6.7, 2.6)
+        return realce_red
+
+    def G(img):
+        imag_cal_C14 = img["C14"]
+        imag_cal_C11 = img["C11"]
+        realce_green = realce_gama(imag_cal_C14 - imag_cal_C11, 1, 1, -6.0, 6.3)
+        return realce_green
+
+    def B(img):
+        imag_cal_C13 = img["C13"]
+        realce_blue = realce_gama(imag_cal_C13, 1, 1, 243.6, 302.4)
+        return realce_blue
+
+    return {
+        "funcs": {"R": R, "G": G, "B": B},
+        "bands": ["C15", "C13", "C14", "C11"],
+        "emissive_units": {
+            "C15": "kelvin",
+            "C13": "kelvin",
+            "C14": "kelvin",
+            "C11": "kelvin",
+        },
+    }
+
+
+def day_cloud_convection():
+    """
+    Esta receta es para el producto de convección de nubes diurnas.
+    """
+
+    def R(img):
+        imag_cal_C02 = img["C02"]
+        realce_red = realce_gama(imag_cal_C02, 1, 1.7, 0, 1)
+        return realce_red
+
+    def G(img):
+        imag_cal_C02 = img["C02"]
+        realce_green = realce_gama(imag_cal_C02, 1, 1.7, 0, 1)
+        return realce_green
+
+    def B(img):
+        imag_cal_C13 = img["C13"]
+        realce_blue = realce_gama(imag_cal_C13, 1, 1, 49.85, -70.15)
+        return realce_blue
+
+    return {
+        "funcs": {"R": R, "G": G, "B": B},
+        "bands": ["C02", "C02", "C13"],
+        "emissive_units": {"C13": "celsius"},
+    }

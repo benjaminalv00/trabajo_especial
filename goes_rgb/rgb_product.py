@@ -12,10 +12,9 @@ class RGBProduct:
         self.calibrated_images = calibrated_images
 
     def build(self):
-
-        R = self.recipe["R"](self.calibrated_images)
-        G = self.recipe["G"](self.calibrated_images)
-        B = self.recipe["B"](self.calibrated_images)
+        R = self.recipe["funcs"]["R"](self.calibrated_images)
+        G = self.recipe["funcs"]["G"](self.calibrated_images)
+        B = self.recipe["funcs"]["B"](self.calibrated_images)
 
         # Aplicar recorte si se especifica
         if self.recorte is not None:

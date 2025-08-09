@@ -43,19 +43,46 @@ class ABIImageL1b(BaseABIImage):
             }
             ds.close()
 
-    def get_calibrated_data(self):
-        # Aplica calibración a todas las bandas y las guarda en self.calibrated_data
-        for band in self.channels:
-            self.calibrated_data[band] = self.calibrate_band(
-                band, self.datasets[band]["band_array"]
+    def calibrate_band(self, band, raw_data, unit=None):
+        """
+        Calibrar una banda específica según la unidad requerida.
+        Como sabemos, la calibracion de l1b es a Celsius
+        """
+        if unit is None:
+            unit = "celsius"
+        if unit == "celsius":
+            # Convertir de Kelvin a Celsius
+            return raw_data
+        elif unit == "kelvin":
+            # No se requiere conversión, retornar el array original
+            return raw_data + 273.15
+        else:
+            raise ValueError(f"Unidad de calibración no soportada: {unit}")
+
+    def get_band_array(self, band):
+        """
+        Devuelve el array de datos de la banda solicitada.
+        """
+        if band in self.datasets:
+            emissive_bands = [
+                "C07",
+                "C08",
+                "C09",
+                "C10",
+                "C11",
+                "C12",
+                "C13",
+                "C14",
+                "C15",
+                "C16",
+            ]
+            return calibrate_imag(
+                self.datasets[band]["band_array"],
+                self.datasets[band]["metadata"],
+                U="Ref" if band not in emissive_bands else "T",
             )
-            band_array = self.get_band_array(band)
-            metadata = self.datasets[band]["metadata"]
-            kind = "T" if band in ["C07", "C13", "C08", "C10", "C12"] else "Ref"
-            self.calibrated_data[band] = calibrate_imag(
-                band_array, metadata, U=kind
-            )  # Ojo porque depende de la banda
-        return self.calibrated_data
+        else:
+            raise ValueError(f"Banda {band} no encontrada en los datasets.")
 
     def get_projection_params(self):
         # Obtiene los parámetros de proyección para L1b
