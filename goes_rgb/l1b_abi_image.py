@@ -98,7 +98,4 @@ class ABIImageL1b(BaseABIImage):
             x = x[::2]
             y = y[::2]
         crs = ccrs.Geostationary(central_longitude=lon_cen, satellite_height=altura)
-        return (
-            crs,
-            x,
-        )
+        return crs, x, y
