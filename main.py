@@ -1,5 +1,6 @@
 from datetime import datetime
 from goes_rgb.l2_abi_image import ABIImageMCMI
+from goes_rgb.l1b_abi_image import ABIImageL1b
 from goes_rgb.rgb_processor import RGBProcessor
 from goes_rgb.rgb_recipes import (
     microfisica_nocturna,
@@ -9,6 +10,13 @@ from goes_rgb.rgb_recipes import (
     air_mass,
     ash,
     day_cloud_convection,
+    day_convection,
+    day_land_cloud,
+    day_land_cloud_fire,
+    day_snow_fog,
+    simple_water_vapor,
+    dust,
+    differential_water_vapor,
 )
 from goes_rgb.visualization import plot_rgb_with_coastlines
 from goes_rgb.helpers import save_rgb_geotiff
@@ -16,8 +24,9 @@ import numpy as np
 
 # Instanciar imagen ABI
 # bands = ["C01", "C02", "C03", "C04", "C05", "C06", "C07", "C08", "C09", "C10", "C11", "C12", "C13", "C14", "C15"]
+# bands = ["C02","C13"]
 img = ABIImageMCMI(datetime(2022, 9, 21, 18, 0))
-# img = ABIImage(datetime(2018, 7, 13, 18, 0), "ABI-L1b-RadF", bands)
+# img = ABIImageL1b(datetime(2018, 7, 13, 18, 0), "ABI-L1b-RadF", bands)
 
 img.download()
 img.open()
@@ -29,10 +38,18 @@ recipes = {
     # "Microfisica Diurna": daily_microphysics(),
     # "Masa de aire": air_mass(),
     # "Cenizas": ash()
-    "Convección de Nubes Diurna": day_cloud_convection(),
+    # "Convección de Nubes Diurna": day_cloud_convection(),
+    # "Conveccion Diurna": day_convection()
+    # "Nubes de dia": day_land_cloud()
+    # "Nubes de dia y fuego": day_land_cloud_fire()
+    # "Nubes de dia y nieve": day_snow_fog()
+    # "vapor de agua simple": simple_water_vapor()
+    # "Polvo": dust()
+    "vapor de agua diferencial": differential_water_vapor()
 }
 
 # Obtener parámetros de proyección
+# breakpoint()
 crs, x, y = img.get_projection_params()
 
 # Recorte por lat/lon (Arg)
