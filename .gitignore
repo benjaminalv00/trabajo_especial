@@ -178,3 +178,5 @@ notebooks/data/
 *.tif*
 products/*
 notebooks/ 
+gifs/*
+salidas
