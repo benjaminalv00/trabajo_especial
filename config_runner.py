@@ -6,6 +6,8 @@ from goes_rgb.l1b_abi_image import ABIImageL1b
 from goes_rgb.rgb_processor import RGBProcessor
 from goes_rgb.visualization import plot_rgb_with_coastlines
 from goes_rgb.recipes_registry import RECIPE_REGISTRY
+import imageio.v2 as imageio
+import numpy as np
 
 
 def load_config(path):
@@ -44,6 +46,9 @@ def run_job(job, defaults):
     recorte_conf = job.get("recorte", defaults.get("recorte"))
     export_conf = {**defaults.get("export", {}), **job.get("export", {})}
 
+    gif_conf = job.get("gif")
+    gif_frames = []  # rutas a PNG (o podrías guardar arrays si prefieres)
+
     for dt in expand_datetimes(job):
         img = build_image(dt, defaults, job)
         img.download()
@@ -66,9 +71,11 @@ def run_job(job, defaults):
         out_dir = Path(export_conf.get("out_dir", "salidas"))
         out_dir.mkdir(parents=True, exist_ok=True)
         shp = export_conf.get("shapefile_provincias")
+
         for nombre in productos:
             rgb = processor.get_product(nombre)
             titulo = f"{job.get('nombre', nombre)} {nombre} {dt:%Y%m%d_%H%M}"
+            png_path = out_dir / f"{nombre}_{dt:%Y%m%d_%H%M}.png"
             plot_rgb_with_coastlines(
                 rgb,
                 extent=extent,
@@ -76,9 +83,38 @@ def run_job(job, defaults):
                 title=titulo,
                 provincias_shp=shp,
                 show=export_conf.get("show", False),
-                save_path=str(out_dir / f"{nombre}_{dt:%Y%m%d_%H%M}.png"),
+                save_path=str(png_path),
                 save=True,
             )
+            # Acumular frames para el GIF del producto elegido
+            if gif_conf and nombre == gif_conf.get("producto"):
+                gif_frames.append(str(png_path))
+
+    # Generar GIF si corresponde
+    if gif_conf and gif_frames:
+        loop = gif_conf.get("loop", 0)
+        # Prioridad: frame_seconds > fps
+        frame_seconds = gif_conf.get("frame_seconds")
+        if frame_seconds is None:
+            fps = gif_conf.get("fps", 1)  # default 1 fps
+            frame_seconds = 1.0 / float(fps)
+        gif_out_dir = Path(gif_conf.get("out_dir", "gifs"))
+        gif_out_dir.mkdir(parents=True, exist_ok=True)
+        filename = gif_conf.get("filename", f"{gif_conf['producto']}.gif")
+        gif_path = gif_out_dir / filename
+
+        import imageio.v2 as imageio
+
+        # Streaming writer (menos RAM)
+        with imageio.get_writer(
+            gif_path, mode="I", loop=loop, duration=frame_seconds
+        ) as writer:
+            for fp in gif_frames:
+                frame = imageio.imread(fp)
+                writer.append_data(frame)
+        print(
+            f"GIF generado: {gif_path} frames={len(gif_frames)} delay={frame_seconds}s loop={loop}"
+        )
 
 
 def run_from_config(ruta):

@@ -79,12 +79,15 @@ def plot_rgb_with_coastlines(
     plt.tight_layout()
     plt.title(title, fontsize=20)
     # Save plot to file en carpeta products
-    output_file = os.path.join("products", f"{title}.png")
+    output_file = save_path if save_path else os.path.join("products", f"{title}.png")
     if save:
+        os.makedirs(os.path.dirname(output_file), exist_ok=True)
         plt.savefig(output_file, dpi=300, bbox_inches="tight")
         print(f"Gráfico guardado en {output_file}")
     if show:
         plt.show()
+    else:
+        plt.close(fig)
     return fig
 
 

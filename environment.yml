@@ -18,6 +18,7 @@ dependencies:
   - pyproj
   - gdal
   - pyyaml
+  - imageio
   - pip
   - pip:
       - -e .

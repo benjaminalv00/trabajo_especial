@@ -1,5 +1,5 @@
 from goes_rgb.rgb_product import RGBProduct
-from goes_rgb.helpers import calibrate_imag, band_is_emissive
+from goes_rgb.helpers import band_is_emissive
 
 
 class RGBProcessor:
