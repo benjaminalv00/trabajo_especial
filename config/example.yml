@@ -1,0 +1,19 @@
+defaults:
+  tipo_imagen: MCMI
+  recorte: [-18.6, -56.45, -79.79, -50.0]
+  export:
+    out_dir: salidas/
+    shapefile_provincias: shapefiles/provincias/linea_de_limite_070111Line.shp
+    show: false
+
+jobs:
+  - nombre: color_1800
+    datetime: 2022-09-21T18:00:00
+    productos: [true_color]
+
+  - nombre: serie_conveccion
+    rango:
+      inicio: 2022-09-21T15:00:00
+      fin: 2022-09-21T18:00:00
+      paso_minutos: 30
+    productos: [day_convection, dust]

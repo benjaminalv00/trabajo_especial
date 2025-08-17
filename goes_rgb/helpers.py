@@ -21,6 +21,7 @@ def calibrate_imag(imagen, metadato, U="T"):
 
         imag_cal = (fk2 / (np.log((fk1 / imagen) + 1)) - bc1) / bc2 - 273.15  # K -> C
         Unit = "Temperatura de Brillo [°C]"
+    # sacar esto!!
     elif U == "Rad":
         raise NotImplementedError(
             "La calibración de Radiancia no está implementada en este momento."

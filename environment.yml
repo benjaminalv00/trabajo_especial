@@ -17,6 +17,7 @@ dependencies:
   - rasterio
   - pyproj
   - gdal
+  - pyyaml
   - pip
   - pip:
       - -e .

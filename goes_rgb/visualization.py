@@ -26,6 +26,7 @@ def plot_rgb_with_coastlines(
     lon_interval=2,
     lat_interval=2,
     save=False,
+    save_path="products",
 ):
     """
     Muestra una imagen RGB con líneas de costa y líneas de latitud/longitud.
