@@ -102,6 +102,7 @@ def plot_band_with_coastlines(
     lat_interval=2,
     save=False,
     cmap="gray",
+    save_path=None,
 ):
     """
     Muestra una banda (2D) con líneas de costa y líneas de latitud/longitud.
@@ -156,10 +157,13 @@ def plot_band_with_coastlines(
 
     output_file = os.path.join("products", f"{title}.png")
     if save:
+        os.makedirs(os.path.dirname(output_file) or ".", exist_ok=True)
         plt.savefig(output_file, dpi=300, bbox_inches="tight")
+        print(f"Gráfico guardado en {output_file}")
     if show:
         plt.show()
     else:
-        print(f"Gráfico guardado en {output_file}")
+        # print(f"Gráfico guardado en {output_file}")
+        plt.close(fig)
 
     return fig

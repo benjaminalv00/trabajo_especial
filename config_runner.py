@@ -4,7 +4,8 @@ from datetime import datetime, timedelta
 from goes_rgb.l2_abi_image import ABIImageMCMI
 from goes_rgb.l1b_abi_image import ABIImageL1b
 from goes_rgb.rgb_processor import RGBProcessor
-from goes_rgb.visualization import plot_rgb_with_coastlines
+from goes_rgb.visualization import plot_rgb_with_coastlines, plot_band_with_coastlines
+
 from goes_rgb.recipes_registry import RECIPE_REGISTRY
 import imageio.v2 as imageio
 import numpy as np
@@ -51,6 +52,7 @@ def run_job(job, defaults):
     gif_conf = job.get("gif")
     video_conf = job.get("video")
     geotiff_conf = job.get("geotiff")
+    comp_conf = job.get("componentes_rgb")
     # Mapear producto -> lista de rutas PNG
     frames_por_producto = {}
 
@@ -93,6 +95,61 @@ def run_job(job, defaults):
                 save_path=str(png_path),
                 save=True,
             )
+
+            # NUEVO: exportar componentes R/G/B si está configurado
+            if comp_conf:
+                ccfg = comp_conf if isinstance(comp_conf, dict) else {}
+                productos_cc = ccfg.get("productos")
+                producto_c = ccfg.get("producto")
+                exportar_comp = (
+                    (productos_cc is not None and nombre in productos_cc)
+                    or (producto_c is not None and nombre == producto_c)
+                    or (
+                        productos_cc is None
+                        and producto_c is None
+                        and len(productos) == 1
+                    )
+                )
+                if exportar_comp:
+                    comp_out = Path(ccfg.get("out_dir", "componentes"))
+                    comp_out.mkdir(parents=True, exist_ok=True)
+                    ts = dt.strftime("%Y%m%d_%H%M")
+                    pattern = ccfg.get(
+                        "filename_pattern", "{producto}_{ts}_{canal}.png"
+                    )
+
+                    # Soporte de cmap global o por canal
+                    cmap_cfg = ccfg.get("cmap", "gray")
+                    cmaps = (
+                        cmap_cfg
+                        if isinstance(cmap_cfg, dict)
+                        else {"R": cmap_cfg, "G": cmap_cfg, "B": cmap_cfg}
+                    )
+
+                    canales = {"R": rgb[..., 0], "G": rgb[..., 1], "B": rgb[..., 2]}
+                    for canal, data in canales.items():
+                        # asegurar [0,1]
+                        if np.issubdtype(data.dtype, np.floating):
+                            band = np.clip(data, 0, 1)
+                        else:
+                            band = np.clip(data.astype(np.float32) / 255.0, 0, 1)
+                        fname = (
+                            pattern.replace("{producto}", nombre)
+                            .replace("{ts}", ts)
+                            .replace("{canal}", canal)
+                        )
+                        out_path = comp_out / fname
+                        plot_band_with_coastlines(
+                            band,
+                            extent=extent,
+                            crs_geo=crs,
+                            title=f"{nombre} {canal} {ts}",
+                            provincias_shp=shp,
+                            show=False,
+                            save=True,
+                            cmap=cmaps.get(canal, "gray"),
+                            save_path=str(out_path),
+                        )
 
             # GeoTIFF (uno por fecha). Elegí producto con geotiff.producto o geotiff.productos
             if geotiff_conf:
