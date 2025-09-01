@@ -19,6 +19,8 @@ dependencies:
   - gdal
   - pyyaml
   - imageio
+  - ffmpeg      
+  - imageio[ffmpeg]
   - pip
   - pip:
       - -e .

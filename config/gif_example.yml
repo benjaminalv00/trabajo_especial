@@ -7,10 +7,24 @@ defaults:
     show: false
 
 jobs:
+  - nombre: serie_daytime_convection
+    rango:
+      inicio: 2022-09-21T10:00:00
+      fin: 2022-09-22T00:00:00
+      paso_minutos: 60
+    productos: [day_convection]
+    gif:
+      producto: day_convection
+      fps: 1
+      frame_seconds: 1000.0
+      filename: serie_daytime_convection.gif
+      out_dir: gifs/
+      loop: 0          # 0 = infinito
+
   - nombre: serie_color_real
     rango:
-      inicio: 2022-09-21T15:00:00
-      fin: 2022-09-21T18:00:00
+      inicio: 2022-09-21T10:00:00
+      fin: 2022-09-22T00:00:00
       paso_minutos: 60
     productos: [true_color]
     gif:

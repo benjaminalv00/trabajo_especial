@@ -8,6 +8,7 @@ from goes_rgb.visualization import plot_rgb_with_coastlines
 from goes_rgb.recipes_registry import RECIPE_REGISTRY
 import imageio.v2 as imageio
 import numpy as np
+import math
 
 
 def load_config(path):
@@ -41,13 +42,138 @@ def build_image(dt, defaults, job):
     raise ValueError(f"tipo_imagen desconocido: {modo}")
 
 
+# def run_job(job, defaults):
+#     productos = job["productos"]
+#     recorte_conf = job.get("recorte", defaults.get("recorte"))
+#     export_conf = {**defaults.get("export", {}), **job.get("export", {})}
+
+#     gif_conf = job.get("gif")
+#     video_conf = job.get("video")  # NUEVO: soporte MP4
+#     # Mapear producto -> lista de rutas PNG
+#     frames_por_producto = {}
+
+#     for dt in expand_datetimes(job):
+#         img = build_image(dt, defaults, job)
+#         img.download()
+#         img.open()
+#         crs, x, y = img.get_projection_params()
+
+#         if recorte_conf:
+#             latN, latS, lonW, lonE = recorte_conf
+#             f0, f1, c0, c1 = img.get_bbox_indices(latN, latS, lonW, lonE)
+#             rec_tuple = (f0, f1, c0, c1)
+#             extent = (x[c0], x[c1], y[f1], y[f0])
+#         else:
+#             rec_tuple = None
+#             extent = (x[0], x[-1], y[-1], y[0])
+
+#         recipes = {p: RECIPE_REGISTRY[p]() for p in productos}
+#         processor = RGBProcessor(img, recipes, recorte=rec_tuple)
+#         processor.generate_all()
+
+#         out_dir = Path(export_conf.get("out_dir", "salidas"))
+#         out_dir.mkdir(parents=True, exist_ok=True)
+#         shp = export_conf.get("shapefile_provincias")
+
+#         for nombre in productos:
+#             rgb = processor.get_product(nombre)
+#             titulo = f"{job.get('nombre', nombre)} {nombre} {dt:%Y%m%d_%H%M}"
+#             png_path = out_dir / f"{nombre}_{dt:%Y%m%d_%H%M}.png"
+#             plot_rgb_with_coastlines(
+#                 rgb,
+#                 extent=extent,
+#                 crs_geo=crs,
+#                 title=titulo,
+#                 provincias_shp=shp,
+#                 show=export_conf.get("show", False),
+#                 save_path=str(png_path),
+#                 save=True,
+#             )
+#             # Acumular frames para GIF/Video del producto elegido
+#             if (
+#                 (gif_conf and nombre == gif_conf.get("producto"))
+#                 or (video_conf and nombre == video_conf.get("producto"))
+#             ):
+#                 frames_por_producto.setdefault(nombre, []).append(str(png_path))
+
+#     # Generar GIF si corresponde
+#     if gif_conf:
+#         producto_gif = gif_conf.get("producto")
+#         gif_frames = frames_por_producto.get(producto_gif, [])
+#         if gif_frames:
+#             loop = gif_conf.get("loop", 0)
+#             frame_seconds = gif_conf.get("frame_seconds")
+#             if frame_seconds is None:
+#                 fps = gif_conf.get("fps", 1)
+#                 frame_seconds = 1.0 / float(fps)
+#             gif_out_dir = Path(gif_conf.get("out_dir", "gifs"))
+#             gif_out_dir.mkdir(parents=True, exist_ok=True)
+#             filename = gif_conf.get("filename", f"{producto_gif}.gif")
+#             gif_path = gif_out_dir / filename
+
+#             with imageio.get_writer(
+#                 gif_path, mode="I", loop=loop, duration=frame_seconds
+#             ) as writer:
+#                 for fp in gif_frames:
+#                     frame = imageio.imread(fp)
+#                     if frame.dtype != np.uint8:
+#                         frame = np.clip(frame, 0, 255).astype(np.uint8)
+#                     writer.append_data(frame)
+#             print(
+#                 f"GIF generado: {gif_path} frames={len(gif_frames)} delay={frame_seconds}s loop={loop}"
+#             )
+
+#     # Generar MP4 si corresponde
+#     if video_conf:
+#         producto_vid = video_conf.get("producto")
+#         vid_frames = frames_por_producto.get(producto_vid, [])
+#         if vid_frames:
+#             # Derivar fps desde frame_seconds si se da prioridad a eso
+#             frame_seconds = video_conf.get("frame_seconds")
+#             if frame_seconds is not None:
+#                 fps = 1.0 / float(frame_seconds)
+#             else:
+#                 fps = float(video_conf.get("fps", 1))
+
+#             codec = video_conf.get("codec", "libx264")
+#             pix_fmt = video_conf.get("pix_fmt", "yuv420p")
+#             crf = str(video_conf.get("crf", 23))          # 18 mejor calidad, 23 por defecto
+#             preset = video_conf.get("preset", "medium")    # ultrafast..placebo
+
+#             vid_out_dir = Path(video_conf.get("out_dir", "videos"))
+#             vid_out_dir.mkdir(parents=True, exist_ok=True)
+#             filename = video_conf.get("filename", f"{producto_vid}.mp4")
+#             video_path = vid_out_dir / filename
+
+#             writer = imageio.get_writer(
+#                 video_path,
+#                 format="ffmpeg",
+#                 fps=fps,
+#                 codec=codec,
+#                 pixelformat=pix_fmt,
+#                 ffmpeg_params=["-crf", crf, "-preset", preset],
+#             )
+#             try:
+#                 for fp in vid_frames:
+#                     frame = imageio.imread(fp)
+#                     if frame.dtype != np.uint8:
+#                         frame = np.clip(frame, 0, 255).astype(np.uint8)
+#                     writer.append_data(frame)
+#             finally:
+#                 writer.close()
+#             print(f"MP4 generado: {video_path} frames={len(vid_frames)} fps={fps}")
+# ...existing code...
+
+
 def run_job(job, defaults):
     productos = job["productos"]
     recorte_conf = job.get("recorte", defaults.get("recorte"))
     export_conf = {**defaults.get("export", {}), **job.get("export", {})}
 
     gif_conf = job.get("gif")
-    gif_frames = []  # rutas a PNG (o podrías guardar arrays si prefieres)
+    video_conf = job.get("video")  # NUEVO: soporte MP4
+    # Mapear producto -> lista de rutas PNG
+    frames_por_producto = {}
 
     for dt in expand_datetimes(job):
         img = build_image(dt, defaults, job)
@@ -86,35 +212,109 @@ def run_job(job, defaults):
                 save_path=str(png_path),
                 save=True,
             )
-            # Acumular frames para el GIF del producto elegido
-            if gif_conf and nombre == gif_conf.get("producto"):
-                gif_frames.append(str(png_path))
+            # Acumular frames para GIF/Video del producto elegido
+            if (gif_conf and nombre == gif_conf.get("producto")) or (
+                video_conf and nombre == video_conf.get("producto")
+            ):
+                frames_por_producto.setdefault(nombre, []).append(str(png_path))
 
     # Generar GIF si corresponde
-    if gif_conf and gif_frames:
-        loop = gif_conf.get("loop", 0)
-        # Prioridad: frame_seconds > fps
-        frame_seconds = gif_conf.get("frame_seconds")
-        if frame_seconds is None:
-            fps = gif_conf.get("fps", 1)  # default 1 fps
-            frame_seconds = 1.0 / float(fps)
-        gif_out_dir = Path(gif_conf.get("out_dir", "gifs"))
-        gif_out_dir.mkdir(parents=True, exist_ok=True)
-        filename = gif_conf.get("filename", f"{gif_conf['producto']}.gif")
-        gif_path = gif_out_dir / filename
+    if gif_conf:
+        producto_gif = gif_conf.get("producto")
+        gif_frames = frames_por_producto.get(producto_gif, [])
+        if gif_frames:
+            loop = gif_conf.get("loop", 0)
+            frame_seconds = gif_conf.get("frame_seconds")
+            if frame_seconds is None:
+                fps = float(gif_conf.get("fps", 1))
+                fps = max(fps, 0.01)
+                frame_seconds = 1.0 / fps
+            gif_out_dir = Path(gif_conf.get("out_dir", "gifs"))
+            gif_out_dir.mkdir(parents=True, exist_ok=True)
+            filename = gif_conf.get("filename", f"{producto_gif}.gif")
+            gif_path = gif_out_dir / filename
 
-        import imageio.v2 as imageio
+            with imageio.get_writer(
+                gif_path, mode="I", loop=loop, duration=frame_seconds
+            ) as writer:
+                for fp in gif_frames:
+                    frame = imageio.imread(fp)
+                    # Normalizar a RGB uint8
+                    if frame.ndim == 2:
+                        frame = np.stack([frame] * 3, axis=-1)
+                    if frame.shape[-1] == 4:
+                        frame = frame[..., :3]
+                    if frame.dtype != np.uint8:
+                        frame = np.clip(frame, 0, 255).astype(np.uint8)
+                    writer.append_data(frame)
+            print(
+                f"GIF generado: {gif_path} frames={len(gif_frames)} delay={frame_seconds}s loop={loop}"
+            )
 
-        # Streaming writer (menos RAM)
-        with imageio.get_writer(
-            gif_path, mode="I", loop=loop, duration=frame_seconds
-        ) as writer:
-            for fp in gif_frames:
-                frame = imageio.imread(fp)
-                writer.append_data(frame)
-        print(
-            f"GIF generado: {gif_path} frames={len(gif_frames)} delay={frame_seconds}s loop={loop}"
-        )
+    # Generar MP4 si corresponde
+    if video_conf:
+        producto_vid = video_conf.get("producto")
+        vid_frames = frames_por_producto.get(producto_vid, [])
+        if vid_frames:
+            # fps desde frame_seconds si está definido
+            frame_seconds = video_conf.get("frame_seconds")
+            if frame_seconds is not None:
+                fps = 1.0 / float(frame_seconds)
+            else:
+                fps = float(video_conf.get("fps", 1))
+            fps = max(fps, 0.01)  # evitar -r 0.00
+
+            codec = video_conf.get("codec", "libx264")
+            pix_fmt = video_conf.get("pix_fmt", "yuv420p")
+            crf = str(video_conf.get("crf", 23))
+            preset = video_conf.get("preset", "medium")
+
+            vid_out_dir = Path(video_conf.get("out_dir", "videos"))
+            vid_out_dir.mkdir(parents=True, exist_ok=True)
+            filename = video_conf.get("filename", f"{producto_vid}.mp4")
+            video_path = vid_out_dir / filename
+
+            norm = []
+            max_h = max_w = 0
+            for fp in vid_frames:
+                fr = imageio.imread(fp)
+                if fr.ndim == 2:
+                    fr = np.stack([fr] * 3, axis=-1)
+                if fr.shape[-1] == 4:
+                    fr = fr[..., :3]
+                if fr.dtype != np.uint8:
+                    fr = np.clip(fr, 0, 255).astype(np.uint8)
+                h, w = fr.shape[:2]
+                max_h = max(max_h, h)
+                max_w = max(max_w, w)
+                norm.append(fr)
+            # Target múltiplo de 16 y par (yuv420p)
+            tgt_h = int(math.ceil(max_h / 16) * 16)
+            tgt_w = int(math.ceil(max_w / 16) * 16)
+            if tgt_h % 2:
+                tgt_h += 1
+            if tgt_w % 2:
+                tgt_w += 1
+            padded = []
+            for fr in norm:
+                h, w = fr.shape[:2]
+                pad_h = tgt_h - h
+                pad_w = tgt_w - w
+                if pad_h or pad_w:
+                    fr = np.pad(fr, ((0, pad_h), (0, pad_w), (0, 0)), mode="edge")
+                padded.append(fr)
+
+            with imageio.get_writer(
+                video_path,
+                format="ffmpeg",
+                fps=fps,
+                codec=codec,
+                pixelformat=pix_fmt,
+                ffmpeg_params=["-crf", crf, "-preset", preset],
+            ) as writer:
+                for fr in padded:
+                    writer.append_data(fr)
+            print(f"MP4 generado: {video_path} frames=8 fps={fps}")
 
 
 def run_from_config(ruta):

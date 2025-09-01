@@ -1,0 +1,78 @@
+defaults:
+  tipo_imagen: MCMI
+  recorte: [-18.6, -56.45, -79.79, -50.0]
+  export:
+    out_dir: salidas/
+    shapefile_provincias: shapefiles/provincias/linea_de_limite_070111Line.shp
+    show: false
+
+jobs:
+  - nombre: serie_daytime_convection
+    rango:
+        inicio: 2022-09-21T12:00:00
+        fin: 2022-09-21T14:00:00
+        paso_minutos: 60
+    productos: [day_convection]
+    video:
+      producto: day_convection
+      frame_seconds: 1
+      #fps: 1                 # o usa frame_seconds: 2.0
+      filename: serie_daytime_convection.mp4
+      out_dir: videos/
+      codec: libx264
+      crf: 23
+      preset: medium
+      pix_fmt: yuv420p
+
+  # - nombre: serie_true_color_mp4
+  #   rango:
+  #     inicio: 2022-09-21T12:00:00
+  #     fin: 2022-09-21T21:00:00
+  #     paso_minutos: 60
+  #   productos: [true_color]
+  #   video:
+  #     producto: true_color
+  #     frame_seconds: 1
+  #     filename: serie_true_color.mp4
+  #     out_dir: videos/
+  #     codec: libx264
+  #     crf: 23
+  #     preset: medium
+  #     pix_fmt: yuv420p
+
+
+
+# Requisitos en Linux:
+# - Instalar ffmpeg: sudo apt-get update && sudo apt-get install -y ffmpeg
+# - Si hiciera falta: pip install imageio imageio-ffmpeg
+
+# Notas:
+# - Para hacer el video “más lento”, baja fps o sube frame_seconds.
+# - yuv420p mejora compatibilidad de reproducción.# ...existing config...
+#   - nombre: serie_daytime_convection
+#     # ...existing code...
+#     gif:
+#       producto: day_convection
+#       fps: 1
+#       frame_seconds: 2.0
+#       filename: serie_daytime_convection.gif
+#       out_dir: gifs/
+#       loop: 0
+#     video:
+#       producto: day_convection
+#       fps: 1                 # o usa frame_seconds: 2.0
+#       filename: serie_daytime_convection.mp4
+#       out_dir: videos/
+#       codec: libx264
+#       crf: 23
+#       preset: medium
+#       pix_fmt: yuv420p
+# ```
+
+# Requisitos en Linux:
+# - Instalar ffmpeg: sudo apt-get update && sudo apt-get install -y ffmpeg
+# - Si hiciera falta: pip install imageio imageio-ffmpeg
+
+# Notas:
+# - Para hacer el video “más lento”, baja fps o sube frame_seconds.
+# - yuv420p mejora compatibilidad
