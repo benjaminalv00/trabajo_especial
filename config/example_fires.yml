@@ -1,0 +1,20 @@
+defaults:
+  tipo_imagen: MCMI
+  #recorte: [-28, -36.5, -67.0, -60.0]
+  recorte: [-32, -33.5, -66.5, -65.0]
+  export:
+    out_dir: salidas/
+    shapefile_provincias: shapefiles/provincias/linea_de_limite_070111Line.shp
+    show: false
+
+jobs:
+  - nombre: cba_day_land
+    recorte: [-30, -31.5, -65, -63.5]
+    satelite: GOES16
+    datetime: 2024-09-21T17:00:00
+    productos: [day_land_cloud_fire]
+
+  # - nombre: sanluis_fire_day_land
+  #   satelite: GOES16
+  #   datetime: 2024-09-21T17:00:00
+  #   productos: [day_land_cloud_fire]

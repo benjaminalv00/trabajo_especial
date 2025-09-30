@@ -37,7 +37,9 @@ def expand_datetimes(job):
 
 def build_image(dt, defaults, job):
     modo = job.get("tipo_imagen", defaults.get("tipo_imagen", "MCMI")).upper()
+    satelite = job.get("satelite", defaults.get("satelite", "GOES19")).upper()
     if modo == "MCMI":
+        return ABIImageMCMI(dt, satellite=f"noaa-{satelite.lower()}")
         return ABIImageMCMI(dt)
     if modo == "L1B":
         return ABIImageL1b(dt, "ABI-L1b-RadF")
@@ -48,7 +50,7 @@ def run_job(job, defaults):
     productos = job["productos"]
     recorte_conf = job.get("recorte", defaults.get("recorte"))
     export_conf = {**defaults.get("export", {}), **job.get("export", {})}
-
+    nombre_job = job.get("nombre", "job")
     gif_conf = job.get("gif")
     video_conf = job.get("video")
     geotiff_conf = job.get("geotiff")
@@ -84,7 +86,7 @@ def run_job(job, defaults):
         for nombre in productos:
             rgb = processor.get_product(nombre)
             titulo = f"{job.get('nombre', nombre)} {nombre} {dt:%Y%m%d_%H%M}"
-            png_path = out_dir / f"{nombre}_{dt:%Y%m%d_%H%M}.png"
+            png_path = out_dir / f"{nombre_job}_{nombre}_{dt:%Y%m%d_%H%M}.png"
             plot_rgb_with_coastlines(
                 rgb,
                 extent=extent,

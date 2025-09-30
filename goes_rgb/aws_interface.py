@@ -43,6 +43,7 @@ def download_goes_files_for_datetime(
         return []
 
     downloaded_files = []
+    # breakpoint()
     if product == "ABI-L2-MCMIPF":
         # Todos los canales están en un solo archivo NetCDF
         matched = [f for f in files if f.endswith(".nc")]

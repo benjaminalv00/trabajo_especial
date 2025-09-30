@@ -5,6 +5,7 @@ import cartopy.crs as ccrs
 import cartopy.feature as cfeature
 import cartopy.io.shapereader as shpreader
 from cartopy.feature import ShapelyFeature
+import matplotlib.ticker as mticker
 
 
 def plot_radiance(radiancia, titulo="Radiancia", cmap="gray"):
@@ -26,7 +27,7 @@ def plot_rgb_with_coastlines(
     lon_interval=2,
     lat_interval=2,
     save=False,
-    save_path="products",
+    save_path=None,
 ):
     """
     Muestra una imagen RGB con líneas de costa y líneas de latitud/longitud.
@@ -51,8 +52,10 @@ def plot_rgb_with_coastlines(
     gl = ax.gridlines(
         draw_labels=True, color="gray", alpha=0.8, linestyle="--", linewidth=1.5
     )
-    gl.bottom_labels = False
+    gl.bottom_labels = True
     gl.right_labels = False
+    gl.top_labels = False
+    gl.left_labels = True
 
     # Agrandar los ticks de lat/lon
     gl.xlabel_style = {"size": 20}
@@ -61,8 +64,10 @@ def plot_rgb_with_coastlines(
     # cada cuántos grados ponemos las líneas:
     import numpy as np
 
-    gl.xlocator = plt.FixedLocator(np.arange(-180, 181, lon_interval))
-    gl.ylocator = plt.FixedLocator(np.arange(-90, 91, lat_interval))
+    gl.xlocator = plt.FixedLocator(np.arange(-180, 181, 1))
+    gl.ylocator = plt.FixedLocator(np.arange(-90, 91, 1))
+    # gl.xlocator = mticker.FixedLocator(np.arange(-180, 181, lon_interval))
+    # gl.ylocator = mticker.FixedLocator(np.arange(-90, 91, lat_interval))
 
     # Agregar límites de provincias si se proporciona el shapefile
     if provincias_shp is not None:
@@ -77,9 +82,10 @@ def plot_rgb_with_coastlines(
         ax.add_feature(provincias)
 
     plt.tight_layout()
-    plt.title(title, fontsize=20)
+    # plt.title(title, fontsize=20)
     # Save plot to file en carpeta products
     output_file = save_path if save_path else os.path.join("products", f"{title}.png")
+    # breakpoint()
     if save:
         os.makedirs(os.path.dirname(output_file), exist_ok=True)
         plt.savefig(output_file, dpi=300, bbox_inches="tight")
