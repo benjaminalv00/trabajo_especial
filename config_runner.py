@@ -38,11 +38,14 @@ def expand_datetimes(job):
 def build_image(dt, defaults, job):
     modo = job.get("tipo_imagen", defaults.get("tipo_imagen", "MCMI")).upper()
     satelite = job.get("satelite", defaults.get("satelite", "GOES19")).upper()
+    data_dir = job.get("data_dir", defaults.get("data_dir", "data"))
     if modo == "MCMI":
-        return ABIImageMCMI(dt, satellite=f"noaa-{satelite.lower()}")
-        return ABIImageMCMI(dt)
+        return ABIImageMCMI(
+            dt, satellite=f"noaa-{satelite.lower()}", local_dir=data_dir
+        )
     if modo == "L1B":
-        return ABIImageL1b(dt, "ABI-L1b-RadF")
+        # aca queda laburo por hacer para L1B
+        return ABIImageL1b(dt, "ABI-L1b-RadF", local_dir=data_dir)
     raise ValueError(f"tipo_imagen desconocido: {modo}")
 
 

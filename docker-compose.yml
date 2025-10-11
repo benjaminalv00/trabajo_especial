@@ -1,0 +1,29 @@
+# Versión del formato de archivo de Docker Compose. '3.8' es una versión moderna y recomendada.
+version: '3.8'
+
+# Aquí definimos los 'servicios' o contenedores que forman nuestra aplicación.
+services:
+  # Le damos un nombre a nuestro servicio, por ejemplo, 'processor'.
+  goes-processor:
+    # Le decimos a Compose que construya una imagen para este servicio.
+    # El '.' significa que debe buscar el Dockerfile en el directorio actual.
+    build: .
+    # Opcional pero recomendado: le damos un nombre a la imagen que se construirá.
+    image: goes-processor
+    
+    # Aquí replicamos la configuración de los volúmenes (-v) del comando 'docker run'.
+    # La sintaxis es "ruta_en_tu_maquina:ruta_en_el_contenedor".
+    volumes:
+      - ./config:/app/config
+      - ./salidas:/app/salidas
+      - ./shapefiles:/app/shapefiles
+      - ./data:/app/data  # 👈 AÑADE/MODIFICA ESTA LÍNEA
+
+      
+    # Este es el comando por defecto que se ejecutará al iniciar el contenedor.
+    # Es la parte final del comando 'docker run'.
+    # --- LÍNEA NUEVA ---
+    # Le decimos a Docker que ejecute el proceso del contenedor
+    # con el mismo User ID y Group ID del usuario actual de la máquina host.
+    user: "${UID}:${GID}"
+    command: --config /app/config/example.yml
