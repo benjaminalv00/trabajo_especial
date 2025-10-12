@@ -198,3 +198,10 @@ jobs:
 python main.py --config config/video_example.yml
 ```
 - Estilo/código: se sugiere usar black y pre-commit si están en el entorno.
+- 
+
+## Como ejecutar con docker
+
+```
+UID=$(id -u) GID=$(id -g) docker-compose run --rm goes-processor --config /app/configs/example.yml
+```
