@@ -26,4 +26,4 @@ services:
     # Le decimos a Docker que ejecute el proceso del contenedor
     # con el mismo User ID y Group ID del usuario actual de la máquina host.
     user: "${UID}:${GID}"
-    command: --config /app/config/example.yml
+    command: --config /app/config/example_docker.yml
