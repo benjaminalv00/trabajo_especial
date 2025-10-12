@@ -17,7 +17,7 @@ services:
       - ./config:/app/config
       - ./salidas:/app/salidas
       - ./shapefiles:/app/shapefiles
-      - ./data:/app/data  # 👈 AÑADE/MODIFICA ESTA LÍNEA
+      - ./data:/app/data  # Mounts the 'data' directory from the host to '/app/data' in the container.
 
       
     # Este es el comando por defecto que se ejecutará al iniciar el contenedor.
