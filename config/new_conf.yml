@@ -1,0 +1,30 @@
+defaults:
+  tipo_imagen: MCMI
+  recorte: [-18.6, -56.45, -79.79, -50.0]
+
+jobs:
+  - nombre: job_completo
+    rango:
+      inicio: 2022-09-21T12:00:00
+      fin: 2022-09-21T12:00:00
+      paso_minutos: 60
+    productos: [true_color, day_convection]
+
+    # Salidas deseadas para este job
+    salidas: [PNG, GeoTIFF, COMPONENTES_RGB]
+
+    # Configuración para los PNG
+    png_conf:
+      out_dir: salidas/
+
+    # Configuración para los GeoTIFF
+    geotiff_conf:
+      productos: [true_color, day_convection] # Exportar ambos productos
+      out_dir: geotiffs/
+      filename_pattern: "{producto}_{ts}_completo.tif"
+
+    # Configuración para los componentes R, G, B
+    componentes_rgb_conf:
+      producto: day_convection # Solo para este producto
+      out_dir: componentes/
+      cmap: gray

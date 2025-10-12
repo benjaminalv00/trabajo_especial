@@ -16,6 +16,9 @@ services:
     volumes:
       - ./config:/app/config
       - ./salidas:/app/salidas
+      - ./gifs:/app/gifs
+      - ./geotiffs:/app/geotiffs
+      - ./videos:/app/videos
       - ./shapefiles:/app/shapefiles
       - ./data:/app/data  # Mounts the 'data' directory from the host to '/app/data' in the container.
 

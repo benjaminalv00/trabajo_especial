@@ -37,7 +37,7 @@ def expand_datetimes(job):
 
 def build_image(dt, defaults, job):
     modo = job.get("tipo_imagen", defaults.get("tipo_imagen", "MCMI")).upper()
-    satelite = job.get("satelite", defaults.get("satelite", "GOES19")).upper()
+    satelite = job.get("satelite", defaults.get("satelite", "GOES16")).upper()
     data_dir = job.get("data_dir", defaults.get("data_dir", "data"))
     if modo == "MCMI":
         return ABIImageMCMI(
@@ -52,14 +52,25 @@ def build_image(dt, defaults, job):
 def run_job(job, defaults):
     productos = job["productos"]
     recorte_conf = job.get("recorte", defaults.get("recorte"))
-    export_conf = {**defaults.get("export", {}), **job.get("export", {})}
-    nombre_job = job.get("nombre", "job")
-    gif_conf = job.get("gif")
-    video_conf = job.get("video")
-    geotiff_conf = job.get("geotiff")
-    comp_conf = job.get("componentes_rgb")
+
+    # 1. Leer la lista explícita de salidas deseadas
+    salidas_deseadas = {
+        s.upper() for s in job.get("salidas", ["PNG"])
+    }  # PNG por defecto
+
+    # 2. Cargar configuraciones específicas por tipo de salida
+    # Se fusionan los defaults con la configuración del job
+    export_conf = {**defaults.get("png_conf", {}), **job.get("png_conf", {})}
+    gif_conf = {**defaults.get("gif_conf", {}), **job.get("gif_conf", {})}
+    video_conf = {**defaults.get("video_conf", {}), **job.get("video_conf", {})}
+    geotiff_conf = {**defaults.get("geotiff_conf", {}), **job.get("geotiff_conf", {})}
+    comp_conf = {
+        **defaults.get("componentes_rgb_conf", {}),
+        **job.get("componentes_rgb_conf", {}),
+    }
     # Mapear producto -> lista de rutas PNG
     frames_por_producto = {}
+    nombre_job = job.get("nombre", "job")
 
     for dt in expand_datetimes(job):
         img = build_image(dt, defaults, job)
@@ -90,20 +101,25 @@ def run_job(job, defaults):
             rgb = processor.get_product(nombre)
             titulo = f"{job.get('nombre', nombre)} {nombre} {dt:%Y%m%d_%H%M}"
             png_path = out_dir / f"{nombre_job}_{nombre}_{dt:%Y%m%d_%H%M}.png"
-            plot_rgb_with_coastlines(
-                rgb,
-                extent=extent,
-                crs_geo=crs,
-                title=titulo,
-                provincias_shp=shp,
-                show=export_conf.get("show", False),
-                save_path=str(png_path),
-                save=True,
-            )
 
-            # NUEVO: exportar componentes R/G/B si está configurado
-            if comp_conf:
-                ccfg = comp_conf if isinstance(comp_conf, dict) else {}
+            # 3. Generar PNG solo si está en las salidas deseadas
+            if "PNG" in salidas_deseadas:
+                plot_rgb_with_coastlines(
+                    rgb,
+                    extent=extent,
+                    crs_geo=crs,
+                    title=titulo,
+                    provincias_shp=shp,
+                    show=export_conf.get("show", False),
+                    save_path=str(png_path),
+                    save=True,
+                )
+
+            # Exportar componentes R/G/B si está configurado
+            # 4. Comprobar si se deben exportar componentes
+
+            if "COMPONENTES_RGB" in salidas_deseadas and comp_conf:
+                ccfg = comp_conf
                 productos_cc = ccfg.get("productos")
                 producto_c = ccfg.get("producto")
                 exportar_comp = (
@@ -157,8 +173,9 @@ def run_job(job, defaults):
                         )
 
             # GeoTIFF (uno por fecha). Elegí producto con geotiff.producto o geotiff.productos
-            if geotiff_conf:
-                gt_cfg = geotiff_conf if isinstance(geotiff_conf, dict) else {}
+            # 5. Comprobar si se debe exportar GeoTIFF
+            if "GEOTIFF" in salidas_deseadas and geotiff_conf:
+                gt_cfg = geotiff_conf
                 productos_gt = gt_cfg.get("productos")
                 producto_gt = gt_cfg.get("producto")
                 exportar_gt = (
@@ -187,13 +204,35 @@ def run_job(job, defaults):
                     print(f"GeoTIFF generado: {tiff_path}")
 
             # Acumular frames para GIF/Video del producto elegido
-            if (gif_conf and nombre == gif_conf.get("producto")) or (
-                video_conf and nombre == video_conf.get("producto")
+            # Esto se hace si PNG, GIF o VIDEO están en las salidas, ya que ambos dependen de los frames PNG
+            if (
+                "GIF" in salidas_deseadas
+                and gif_conf
+                and nombre == gif_conf.get("producto")
+            ) or (
+                "VIDEO" in salidas_deseadas
+                and video_conf
+                and nombre == video_conf.get("producto")
             ):
+                # Si los PNG no se guardan, necesitamos una ruta temporal o manejar los frames en memoria.
+                # Por ahora, asumimos que si se quiere GIF/Video, los PNG se generan.
+                # Una mejora sería generar los PNG en una carpeta temporal si no se piden explícitamente.
+                if "PNG" not in salidas_deseadas:
+                    plot_rgb_with_coastlines(
+                        rgb,
+                        extent=extent,
+                        crs_geo=crs,
+                        title=titulo,
+                        provincias_shp=shp,
+                        show=False,
+                        save_path=str(png_path),
+                        save=True,
+                    )
+
                 frames_por_producto.setdefault(nombre, []).append(str(png_path))
 
     # Generar GIF si corresponde
-    if gif_conf:
+    if "GIF" in salidas_deseadas and gif_conf:
         producto_gif = gif_conf.get("producto")
         gif_frames = frames_por_producto.get(producto_gif, [])
         if gif_frames:
@@ -226,7 +265,7 @@ def run_job(job, defaults):
             )
 
     # Generar MP4 si corresponde
-    if video_conf:
+    if "VIDEO" in salidas_deseadas and video_conf:
         producto_vid = video_conf.get("producto")
         vid_frames = frames_por_producto.get(producto_vid, [])
         if vid_frames:

@@ -33,9 +33,14 @@ class BaseABIImage(ABC):
         self.calibrated_data = {}  # Almacena datos calibrados por banda
 
     def download(self):
+        # manejar mejor que pasa si no hay archivos
         self.files = download_goes_files_for_datetime(
             self.dt, self.product, self.channels, self.satellite, self.local_dir
         )
+        if not self.files:
+            raise FileNotFoundError(
+                "No se encontraron archivos para la fecha y producto especificados."
+            )
 
     @abstractmethod
     def open(self):
