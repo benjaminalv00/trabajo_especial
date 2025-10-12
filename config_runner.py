@@ -60,7 +60,7 @@ def run_job(job, defaults):
 
     # 2. Cargar configuraciones específicas por tipo de salida
     # Se fusionan los defaults con la configuración del job
-    export_conf = {**defaults.get("png_conf", {}), **job.get("png_conf", {})}
+    png_conf = {**defaults.get("png_conf", {}), **job.get("png_conf", {})}
     gif_conf = {**defaults.get("gif_conf", {}), **job.get("gif_conf", {})}
     video_conf = {**defaults.get("video_conf", {}), **job.get("video_conf", {})}
     geotiff_conf = {**defaults.get("geotiff_conf", {}), **job.get("geotiff_conf", {})}
@@ -93,9 +93,9 @@ def run_job(job, defaults):
         processor = RGBProcessor(img, recipes, recorte=rec_tuple)
         processor.generate_all()
 
-        out_dir = Path(export_conf.get("out_dir", "salidas"))
+        out_dir = Path(png_conf.get("out_dir", "salidas"))
         out_dir.mkdir(parents=True, exist_ok=True)
-        shp = export_conf.get("shapefile_provincias")
+        shp = png_conf.get("shapefile_provincias")
 
         for nombre in productos:
             rgb = processor.get_product(nombre)
@@ -110,7 +110,7 @@ def run_job(job, defaults):
                     crs_geo=crs,
                     title=titulo,
                     provincias_shp=shp,
-                    show=export_conf.get("show", False),
+                    show=png_conf.get("show", False),
                     save_path=str(png_path),
                     save=True,
                 )
