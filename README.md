@@ -207,5 +207,5 @@ docker-compose build
 ```
 Luego, correr
 ```
-UID=$(id -u) GID=$(id -g) docker-compose run --rm goes-processor --config /app/configs/example.yml
+UID=$(id -u) GID=$(id -g) docker-compose run --rm goes-processor --config /app/config/example.yml
 ```
