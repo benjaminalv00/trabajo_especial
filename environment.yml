@@ -14,13 +14,17 @@ dependencies:
   - ipykernel
   - jupyter
   - cartopy
+  - shapely
   - rasterio
+  - pillow
   - pyproj
   - gdal
   - pyyaml
   - imageio
   - ffmpeg      
   - imageio[ffmpeg]
+  - imageio-ffmpeg
+  - tqdm
   - pip
   - pip:
       - -e .

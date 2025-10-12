@@ -1,0 +1,24 @@
+
+
+# Archivos de Docker y Git
+Dockerfile
+docker-compose.yml
+.git
+.gitignore
+
+# Archivos y carpetas de Python
+__pycache__/
+*.pyc
+.venv/
+.env
+goes_rgb.egg-info/
+
+# Carpetas de datos y salidas (¡muy importante!)
+data/
+salidas/
+products/
+geotiffs/
+gifs/
+videos/
+outputs/
+componentes/
