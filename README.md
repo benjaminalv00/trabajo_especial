@@ -201,7 +201,11 @@ python main.py --config config/video_example.yml
 - 
 
 ## Como ejecutar con docker
-
+Desde el directorio raiz, ejecutar 
+```
+docker-compose build
+```
+Luego, correr
 ```
 UID=$(id -u) GID=$(id -g) docker-compose run --rm goes-processor --config /app/configs/example.yml
 ```
