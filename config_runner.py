@@ -37,6 +37,10 @@ def expand_datetimes(job):
 
 def build_image(dt, defaults, job):
     modo = job.get("tipo_imagen", defaults.get("tipo_imagen", "MCMI")).upper()
+    # NOTE: The default satellite has been changed from "GOES19" to "GOES16".
+    # This change may affect existing configurations that relied on the previous default.
+    # Please update your configuration if you require a different satellite.
+    # Justification: GOES16 is now the recommended/available default for this workflow.
     satelite = job.get("satelite", defaults.get("satelite", "GOES16")).upper()
     data_dir = job.get("data_dir", defaults.get("data_dir", "data"))
     channels = job.get("canales", defaults.get("canales", None))
@@ -45,6 +49,7 @@ def build_image(dt, defaults, job):
             dt, satellite=f"noaa-{satelite.lower()}", local_dir=data_dir
         )
     if modo == "L1B":
+        # Ensure ABIImageL1b implementation properly handles the channels parameter
         return ABIImageL1b(dt, "ABI-L1b-RadF", channels=channels, local_dir=data_dir)
     raise ValueError(f"tipo_imagen desconocido: {modo}")
 

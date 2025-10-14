@@ -39,7 +39,7 @@ class BaseABIImage(ABC):
         )
         if not self.files:
             raise FileNotFoundError(
-                "No se encontraron archivos para la fecha y producto especificados."
+                "No files were found for the specified date and product."
             )
 
     @abstractmethod
