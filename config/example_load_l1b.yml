@@ -1,0 +1,27 @@
+# this example is for loading l1b data from local directory
+# you can use it as a base for docker use
+# TODO: Tambien deberia haber un ejemplo con DESCARGA de imagenes l1b 
+defaults:
+  tipo_imagen: L1B
+  recorte: [-18.6, -56.45, -79.79, -50.0]
+  data_dir: data/L1B/  # Directorio local donde se encuentran los archivos L1B
+  export:
+    out_dir: salidas/
+    show: false
+
+jobs:
+  - nombre: prueba_l1b # FIXME: No le da bola al nombre al guardar el geotiff
+    datetime: 2018-07-13T18:00:00
+    productos: [true_color]
+    canales: ["C02", "C03", "C01"]  # Canales específicos para true_color en L1B
+    # 1. Especificamos que la única salida deseada es GeoTIFF
+    salidas: [GeoTIFF,componentes_rgb]
+    geotiff_conf:
+      producto: true_color
+      filename: "color_real" #prioridad al pattern si existe  
+      filename_pattern: "{producto}_{ts}.tif"  # {ts}=YYYYMMDD_HHMM 
+      out_dir: geotiffs/
+    componentes_rgb_conf:
+      out_dir: componentes_rgb/
+      filename_pattern: "componentes_{ts}.png"  # {ts}=YYYYMMDD_HHMM
+      cmap: gray  # o {"R":"Reds","G":"Greens","B":"Blues"}
