@@ -17,6 +17,7 @@ class ABIImageMCMI(BaseABIImage):
         satellite="noaa-goes16",
         local_dir="data",
     ):
+        # TODO: pensar si hace falta los channels para MCMI o no
         if channels is None:
             channels = [f"C{str(i).zfill(2)}" for i in range(1, 17)]
         super().__init__(dt, product, channels, satellite, local_dir)
