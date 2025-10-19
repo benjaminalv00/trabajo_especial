@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>GOES Config Builder</title>
+    <link rel="stylesheet" href="/static/styles.css" />
+    <script src="https://cdn.jsdelivr.net/npm/js-yaml@4/dist/js-yaml.min.js" defer></script>
+    <script src="/static/app.js" type="module" defer></script>
+  </head>
+  <body>
+    <header>
+      <h1>GOES Config Builder</h1>
+      <div class="controls">
+        <label>
+          Archivo
+          <select id="config-select"></select>
+        </label>
+        <button id="load-config" class="secondary">Cargar</button>
+        <button id="new-config" class="secondary">Nuevo</button>
+        <label>
+          Guardar como
+          <input id="file-name" type="text" placeholder="example.yml" />
+        </label>
+      </div>
+    </header>
+
+    <main>
+      <section>
+        <h2>Defaults</h2>
+        <div class="field-grid">
+          <label>
+            Tipo de imagen
+            <select id="default-tipo">
+              <option value="MCMI">MCMI</option>
+              <option value="L1B">L1B</option>
+            </select>
+          </label>
+          <label>
+            Satélite
+            <input id="default-sat" type="text" placeholder="GOES16" />
+          </label>
+          <label>
+            Data dir
+            <input id="default-data" type="text" placeholder="data/" />
+          </label>
+          <label>
+            Recorte (latN, latS, lonW, lonE)
+            <input id="default-recorte" type="text" placeholder="-18.6, -56.45, -79.79, -50.0" />
+          </label>
+          <label>
+            Export out_dir
+            <input id="default-export-out" type="text" placeholder="salidas/" />
+          </label>
+          <label class="checkbox">
+            <input id="default-export-show" type="checkbox" />
+            Mostrar al generar
+          </label>
+          <label>
+            Shapefile provincias (opcional)
+            <input id="default-export-shp" type="text" placeholder="shapefiles/provincias/..." />
+          </label>
+        </div>
+      </section>
+
+      <section>
+        <h2>Jobs</h2>
+        <div class="job-list" id="jobs-container"></div>
+        <button id="add-job">Añadir job</button>
+      </section>
+
+      <section>
+        <h2>YAML generado</h2>
+        <textarea id="yaml-output" readonly></textarea>
+        <h2>Logs</h2>
+        <pre id="logs">Sin ejecutar.</pre>
+      </section>
+    </main>
+
+    <footer>
+      <div class="run-indicator hidden" id="run-indicator">
+        <span class="spinner"></span>
+        <span id="run-indicator-text">Procesando…</span>
+      </div>
+      <div class="status" id="status">Listo.</div>
+      <button id="preview-btn">Previsualizar YAML</button>
+      <button id="save-btn">Guardar</button>
+      <button id="run-btn">Guardar y ejecutar</button>
+    </footer>
+  </body>
+</html>

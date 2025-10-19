@@ -78,6 +78,31 @@ python main.py --demo
 python main.py --config config/example.yml
 ```
 
+## Interfaz para crear y ejecutar configuraciones
+
+Tenés dos opciones según prefieras trabajar sólo con Python o mantener la SPA anterior:
+
+### NiceGUI (recomendada, todo-Python)
+1. Activá el entorno e instalá las dependencias actualizadas (`conda env update -n goes-env -f environment.yml --prune`).
+2. Levantá la interfaz:
+	```bash
+	python main.py --ui --host 0.0.0.0 --port 8000
+	```
+3. Abrí [http://localhost:8000](http://localhost:8000). Desde la aplicación NiceGUI podés:
+	- Completar *defaults* y agregar/eliminar jobs.
+	- Ver la vista previa del YAML generado en tiempo real (mantiene listas inline y fechas ISO).
+	- Guardar directamente en `config/` o ejecutar el pipeline al vuelo con logs en vivo.
+
+### API + SPA (implementación anterior)
+Si querés seguir usando el front-end estático anterior:
+1. Activá el entorno y ejecutá:
+	```bash
+	python main.py --api
+	```
+2. Abrí [http://localhost:8000](http://localhost:8000) para acceder a la SPA vanilla JS.
+
+> ⚠️ Ambas interfaces cubren los campos más comunes (defaults, jobs, productos, salidas y GeoTIFF). Para opciones avanzadas, editá el YAML manualmente.
+
 ## Formato de configuración (YAML)
 
 Un archivo YAML declara defaults y una lista de jobs. Cada job indica qué productos generar y en qué fechas.

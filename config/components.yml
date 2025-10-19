@@ -1,41 +1,11 @@
 defaults:
   tipo_imagen: MCMI
+  satelite: GOES16
+  data_dir: data/
   recorte: [-18.6, -56.45, -79.79, -50.0]
   export:
     out_dir: salidas/
-    shapefile_provincias: shapefiles/provincias/linea_de_limite_070111Line.shp
-    show: false
-
 jobs:
-  - nombre: serie_geotiff
-    datetime: 2022-09-21T18:00:00
-    productos: [day_convection, true_color]
-    componentes_rgb:
-      productos: [day_convection, true_color]
-      out_dir: componentes/
-      filename_pattern: "{producto}_{ts}_{canal}.png"
-      cmap: gray  # o {"R":"Reds","G":"Greens","B":"Blues"}
-# ```
-
-# Notas:
-# - Esto exporta, por cada fecha, 3 PNG por producto (R/G/B) con georreferencia visual (extent/CRS en el plot). Si quisieras además GeoTIFF de cada componente, se puede añadir un flag as_geotiff y reutilizar save_rgb_geotiff por canal.# filepath: /home/benjamin/trabajo_especial/config/geotiff.yml
-# jobs:
-#   - nombre: serie_geotiff
-#     rango:
-#       inicio: 2022-09-21T12:00:00
-#       fin: 2022-09-21T14:00:00
-#       paso_minutos: 60
-#     productos: [day_convection, true_color]
-#     geotiff:
-#       producto: day_convection
-#       out_dir: geotiffs/
-#       filename_pattern: "{producto}_{ts}.tif"
-#     componentes_rgb:
-#       productos: [day_convection, true_color]
-#       out_dir: componentes/
-#       filename_pattern: "{producto}_{ts}_{canal}.png"
-#       cmap: gray  # o {"R":"Reds","G":"Greens","B":"Blues"}
-# ```
-
-# Notas:
-# - Esto exporta, por cada fecha, 3 PNG por producto (R/G/B) con georreferencia visual (extent/CRS en el plot). Si quisieras además GeoTIFF de cada componente, se puede añadir un
+- satelite: GOES19
+  productos: [true_color]
+  salidas: [PNG]

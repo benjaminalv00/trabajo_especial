@@ -30,3 +30,6 @@ dependencies:
       - -e .
       - pre-commit
       - black
+      - fastapi
+      - uvicorn[standard]
+  - nicegui
