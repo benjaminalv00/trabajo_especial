@@ -1,0 +1,23 @@
+defaults:
+  data_dir: data
+  tipo_imagen: MCMI
+  satelite: GOES19
+  png_conf:
+    out_dir: salidas
+  geotiff_conf:
+    out_dir: geotiff
+jobs:
+- nombre: aa
+  tipo_imagen: MCMI
+  productos:
+  - day_cloud_convection
+  salidas:
+  - PNG
+  - GEOTIFF
+  satelite: GOES19
+  recorte:
+  - 10.0
+  - -60.0
+  - -90.0
+  - -30.0
+  datetime: 2025-08-30 18:00

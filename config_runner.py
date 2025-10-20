@@ -180,6 +180,7 @@ def run_job(job, defaults):
             # GeoTIFF (uno por fecha). Elegí producto con geotiff.producto o geotiff.productos
             # 5. Comprobar si se debe exportar GeoTIFF
             if "GEOTIFF" in salidas_deseadas and geotiff_conf:
+                breakpoint()
                 gt_cfg = geotiff_conf
                 productos_gt = gt_cfg.get("productos")
                 producto_gt = gt_cfg.get("producto")
@@ -192,6 +193,7 @@ def run_job(job, defaults):
                         and len(productos) == 1
                     )
                 )
+                breakpoint()
                 if exportar_gt:
                     gt_out = Path(gt_cfg.get("out_dir", out_dir))
                     gt_out.mkdir(parents=True, exist_ok=True)
@@ -237,6 +239,7 @@ def run_job(job, defaults):
                 frames_por_producto.setdefault(nombre, []).append(str(png_path))
 
     # Generar GIF si corresponde
+    # breakpoint()
     if "GIF" in salidas_deseadas and gif_conf:
         producto_gif = gif_conf.get("producto")
         gif_frames = frames_por_producto.get(producto_gif, [])
