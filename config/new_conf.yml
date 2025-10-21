@@ -5,12 +5,12 @@ defaults:
 jobs:
   - nombre: serie_geotiff
     datetime: 2022-09-21T12:00:00
-    productos: [true_color]
+    productos: [true_color, air_mass]
     # 1. Especificamos que la única salida deseada es GeoTIFF
     salidas: [GeoTIFF]
 
     # 2. Configuramos los detalles del GeoTIFF
     geotiff_conf:
-      producto: true_color               
+      productos: [true_color, air_mass]
       out_dir: geotiffs/
       filename_pattern: "{producto}_{ts}.tif"

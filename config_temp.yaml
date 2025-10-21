@@ -5,19 +5,26 @@ defaults:
   png_conf:
     out_dir: salidas
   geotiff_conf:
-    out_dir: geotiff
+    out_dir: geotiffs
 jobs:
-- nombre: aa
+- nombre: demoaaaaaaa
   tipo_imagen: MCMI
   productos:
-  - day_cloud_convection
+  - air_mass
+  - true_color
   salidas:
   - PNG
-  - GEOTIFF
+  - GeoTIFF
   satelite: GOES19
   recorte:
   - 10.0
   - -60.0
   - -90.0
   - -30.0
-  datetime: 2025-08-30 18:00
+  datetime: '2025-08-30T18:00:00'
+  geotiff_conf:
+    out_dir: geotiffs/
+    filename_pattern: '{producto}_{ts}.tif'
+    productos:
+    - air_mass
+    - true_color
