@@ -163,10 +163,19 @@ if st.button("🚀 Ejecutar procesamiento"):
     try:
         with st.spinner("🚀 Procesando..."):
             status.info("Cargando datos y generando imágenes — por favor espere.")
-            run_from_config(yaml_path)
+            generated_files = run_from_config(yaml_path)
         progress.progress(100)
         status.empty()
         st.success("✅ Procesamiento finalizado con éxito.")
+
+        # 2. Mostramos la lista de archivos si no está vacía
+        if generated_files:
+            st.subheader("Archivos generados:")
+            # Creamos un string con un archivo por línea
+            lista_formateada = "\n".join(generated_files)
+            # st.code() es ideal para mostrar rutas de archivos
+            st.code(lista_formateada, language="bash")
+
     except Exception as e:
         # status.error("❌ Error durante el procesamiento.")
         st.error(f"❌ Error durante la ejecución: {e}")

@@ -57,6 +57,7 @@ def build_image(dt, defaults, job):
 def run_job(job, defaults):
     productos = job["productos"]
     recorte_conf = job.get("recorte", defaults.get("recorte"))
+    generated_files = []
 
     # 1. Leer la lista explícita de salidas deseadas
     salidas_deseadas = {
@@ -121,6 +122,7 @@ def run_job(job, defaults):
                     save_path=str(png_path),
                     save=True,
                 )
+                generated_files.append(str(png_path))
 
             # Exportar componentes R/G/B si está configurado
             # 4. Comprobar si se deben exportar componentes
@@ -207,6 +209,7 @@ def run_job(job, defaults):
                         tiff_path = gt_out / tif_name
                         save_rgb_geotiff(rgb, x, y, f0, f1, c0, c1, crs, str(tiff_path))
                         print(f"GeoTIFF generado: {tiff_path}")
+                        generated_files.append(str(tiff_path))
 
             # Acumular frames para GIF/Video del producto elegido
             # Esto se hace si PNG, GIF o VIDEO están en las salidas, ya que ambos dependen de los frames PNG
@@ -335,9 +338,14 @@ def run_job(job, defaults):
                     writer.append_data(fr)
             print(f"MP4 generado: {video_path} frames=8 fps={fps}")
 
+    return generated_files
+
 
 def run_from_config(ruta):
     cfg = load_config(ruta)
+    total_generated_files = []
     defaults = cfg.get("defaults", {})
     for job in cfg.get("jobs", []):
-        run_job(job, defaults)
+        generated_files = run_job(job, defaults)
+        total_generated_files.extend(generated_files)
+    return total_generated_files
