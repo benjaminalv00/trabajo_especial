@@ -64,10 +64,8 @@ def plot_rgb_with_coastlines(
     # cada cuántos grados ponemos las líneas:
     import numpy as np
 
-    gl.xlocator = plt.FixedLocator(np.arange(-180, 181, 1))
-    gl.ylocator = plt.FixedLocator(np.arange(-90, 91, 1))
-    # gl.xlocator = mticker.FixedLocator(np.arange(-180, 181, lon_interval))
-    # gl.ylocator = mticker.FixedLocator(np.arange(-90, 91, lat_interval))
+    gl.xlocator = mticker.FixedLocator(np.arange(-180, 181, lon_interval))
+    gl.ylocator = mticker.FixedLocator(np.arange(-90, 91, lat_interval))
 
     # Agregar límites de provincias si se proporciona el shapefile
     if provincias_shp is not None:

@@ -116,6 +116,8 @@ def run_job(job, defaults):
                     title=titulo,
                     provincias_shp=shp,
                     show=png_conf.get("show", False),
+                    lon_interval=10,
+                    lat_interval=10,
                     save_path=str(png_path),
                     save=True,
                 )

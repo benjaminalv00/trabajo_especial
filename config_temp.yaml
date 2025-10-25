@@ -1,7 +1,7 @@
 defaults:
   data_dir: data
   tipo_imagen: MCMI
-  satelite: GOES16
+  satelite: GOES19
   png_conf:
     out_dir: salidas
   geotiff_conf:
@@ -10,13 +10,13 @@ jobs:
 - nombre: demo
   tipo_imagen: MCMI
   productos:
-  - air_mass
+  - true_color
   salidas:
   - PNG
-  - GeoTIFF
-  satelite: GOES16
+  satelite: GOES19
+  recorte:
+  - -20.0
+  - -56.0
+  - -75.0
+  - -53.0
   datetime: '2025-08-30T18:00:00'
-  geotiff_conf:
-    out_dir: geotiffs/
-    filename_pattern: '{producto}_{ts}.tif'
-    producto: air_mass

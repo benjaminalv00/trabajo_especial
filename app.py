@@ -5,13 +5,14 @@ from datetime import datetime
 from config_runner import run_from_config
 from goes_rgb.recipes_registry import RECIPE_REGISTRY
 
+
 # ============================================================
 # Utilidades
 # ============================================================
 
 
 def fecha_a_iso(fecha_str):
-    """Convierte 'YYYY-MM-DD HH:MM' a 'YYYY-MM-DDTHH:MM:SS' (ISO 8601)."""
+    """Convierte 'YYYY-MM-DD HH:MM' a 'YYYY-MM-DDTHH:MM:SS'"""
     fecha_str = fecha_str.strip().replace(" ", "T")
     if len(fecha_str.split(":")) == 2:
         fecha_str += ":00"
@@ -21,7 +22,7 @@ def fecha_a_iso(fecha_str):
 def obtener_recorte(nombre):
     """Devuelve coordenadas [latN, latS, lonW, lonE] según preset."""
     presets = {
-        "América del sur": [10.0, -60.0, -90.0, -30.0],
+        "America del sur": [10.0, -60.0, -90.0, -30.0],
         "Argentina": [-20.0, -56.0, -75.0, -53.0],
         "Córdoba": [-30.0, -34.0, -67.0, -62.0],
         "Sin recorte": None,
@@ -33,6 +34,7 @@ def obtener_recorte(nombre):
 # Interfaz
 # ============================================================
 
+
 st.title("🌎 Procesador de Imágenes GOES RGB")
 
 st.markdown(
@@ -40,22 +42,23 @@ st.markdown(
     "El sistema produce automáticamente imágenes PNG y/o GeoTIFF."
 )
 
+
 # Parámetros generales
 nombre = st.text_input("Nombre del job", "demo")
-satelite = st.selectbox("Satélite", ["GOES16", "GOES18", "GOES19"])
+satelite = st.selectbox("Satélite", ["GOES19", "GOES18", "GOES16"])
 productos_disponibles = sorted(RECIPE_REGISTRY.keys())
 productos = st.multiselect(
     "Productos RGB",
     options=productos_disponibles,
     default=(
-        ["TrueColor"]
-        if "TrueColor" in productos_disponibles
+        ["true_color"]
+        if "true_color" in productos_disponibles
         else [productos_disponibles[0]]
     ),
 )
 
 # Selección de tipo de salida
-salidas = st.multiselect("Salidas deseadas", ["PNG", "GeoTIFF"], ["PNG", "GeoTIFF"])
+salidas = st.multiselect("Salidas deseadas", ["PNG", "GeoTIFF"], ["PNG"])
 
 # Fecha o rango
 modo_fecha = st.radio("Modo de fecha", ["Única", "Rango"])
@@ -82,7 +85,7 @@ else:
 
 # Recorte
 recorte_nombre = st.selectbox(
-    "Recorte", ["Cono Sur", "Argentina", "Córdoba", "Sin recorte"]
+    "Recorte", ["Argentina", "Córdoba", "America del sur", "Sin recorte"]
 )
 recorte = obtener_recorte(recorte_nombre)
 
@@ -155,8 +158,15 @@ if st.button("🚀 Ejecutar procesamiento"):
     st.code(yaml.safe_dump(config, sort_keys=False), language="yaml")
 
     # Ejecutar
+    status = st.empty()
+    progress = st.progress(0)
     try:
-        run_from_config(yaml_path)
-        st.success("✅ Procesamiento finalizado con éxito (PNG y GeoTIFF generados).")
+        with st.spinner("🚀 Procesando..."):
+            status.info("Cargando datos y generando imágenes — por favor espere.")
+            run_from_config(yaml_path)
+        progress.progress(100)
+        status.empty()
+        st.success("✅ Procesamiento finalizado con éxito.")
     except Exception as e:
+        # status.error("❌ Error durante el procesamiento.")
         st.error(f"❌ Error durante la ejecución: {e}")
