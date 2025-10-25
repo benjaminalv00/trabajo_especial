@@ -237,7 +237,6 @@ def run_job(job, defaults):
                 frames_por_producto.setdefault(nombre, []).append(str(png_path))
 
     # Generar GIF si corresponde
-    # breakpoint()
     if "GIF" in salidas_deseadas and gif_conf:
         producto_gif = gif_conf.get("producto")
         gif_frames = frames_por_producto.get(producto_gif, [])

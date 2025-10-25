@@ -210,7 +210,7 @@ Luego, correr
 UID=$(id -u) GID=$(id -g) docker-compose run --rm goes-processor --config /app/config/example.yml
 ```
 
-## Interfaz grafica 
+## Interfaz gráfica 
 Correr 
 
 ```
