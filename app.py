@@ -21,7 +21,7 @@ def fecha_a_iso(fecha_str):
 def obtener_recorte(nombre):
     """Devuelve coordenadas [latN, latS, lonW, lonE] según preset."""
     presets = {
-        "Cono Sur": [10.0, -60.0, -90.0, -30.0],
+        "América del sur": [10.0, -60.0, -90.0, -30.0],
         "Argentina": [-20.0, -56.0, -75.0, -53.0],
         "Córdoba": [-30.0, -34.0, -67.0, -62.0],
         "Sin recorte": None,

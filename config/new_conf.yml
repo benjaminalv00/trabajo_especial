@@ -7,9 +7,12 @@ jobs:
     datetime: 2022-09-21T12:00:00
     productos: [true_color, air_mass]
     # 1. Especificamos que la única salida deseada es GeoTIFF
-    salidas: [GeoTIFF]
+    salidas: [GeoTIFF,PNG] 
 
     # 2. Configuramos los detalles del GeoTIFF
+    png_conf:
+      productos: [true_color, air_mass]
+      shapefile_provincias: shapefiles/provincias/linea_de_limite_070111Line.shp
     geotiff_conf:
       productos: [true_color, air_mass]
       out_dir: geotiffs/

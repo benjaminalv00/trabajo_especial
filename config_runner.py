@@ -239,6 +239,7 @@ def run_job(job, defaults):
     if "GIF" in salidas_deseadas and gif_conf:
         producto_gif = gif_conf.get("producto")
         gif_frames = frames_por_producto.get(producto_gif, [])
+        # breakpoint()
         if gif_frames:
             loop = gif_conf.get("loop", 0)
             frame_seconds = gif_conf.get("frame_seconds")
