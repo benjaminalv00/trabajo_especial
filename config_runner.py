@@ -116,6 +116,8 @@ def run_job(job, defaults):
                     title=titulo,
                     provincias_shp=shp,
                     show=png_conf.get("show", False),
+                    lon_interval=10,
+                    lat_interval=10,
                     save_path=str(png_path),
                     save=True,
                 )
@@ -183,30 +185,28 @@ def run_job(job, defaults):
                 gt_cfg = geotiff_conf
                 productos_gt = gt_cfg.get("productos")
                 producto_gt = gt_cfg.get("producto")
-                exportar_gt = (
-                    (productos_gt is not None and nombre in productos_gt)
-                    or (producto_gt is not None and nombre == producto_gt)
-                    or (
-                        productos_gt is None
-                        and producto_gt is None
-                        and len(productos) == 1
-                    )
-                )
-                if exportar_gt:
+                lista_gt = None
+                if productos_gt:
+                    lista_gt = list(productos_gt)
+                elif producto_gt:
+                    lista_gt = [producto_gt]
+                elif len(productos) == 1:
+                    lista_gt = [productos[0]]
+
+                if lista_gt:
                     gt_out = Path(gt_cfg.get("out_dir", out_dir))
                     gt_out.mkdir(parents=True, exist_ok=True)
                     ts = dt.strftime("%Y%m%d_%H%M")
-                    pattern = gt_cfg.get("filename_pattern")
-                    if pattern:
-                        tif_name = pattern.replace("{producto}", nombre).replace(
+                    pattern = gt_cfg.get("filename_pattern", "{producto}_{ts}.tif")
+                    for nombre_gt in lista_gt:
+                        if nombre_gt != nombre:
+                            continue
+                        tif_name = pattern.replace("{producto}", nombre_gt).replace(
                             "{ts}", ts
                         )
-                    else:
-                        tif_name = gt_cfg.get("filename", f"{nombre}_{ts}.tif")
-                    tiff_path = gt_out / tif_name
-                    # Guardar GeoTIFF usando helper existente
-                    save_rgb_geotiff(rgb, x, y, f0, f1, c0, c1, crs, str(tiff_path))
-                    print(f"GeoTIFF generado: {tiff_path}")
+                        tiff_path = gt_out / tif_name
+                        save_rgb_geotiff(rgb, x, y, f0, f1, c0, c1, crs, str(tiff_path))
+                        print(f"GeoTIFF generado: {tiff_path}")
 
             # Acumular frames para GIF/Video del producto elegido
             # Esto se hace si PNG, GIF o VIDEO están en las salidas, ya que ambos dependen de los frames PNG
@@ -240,6 +240,7 @@ def run_job(job, defaults):
     if "GIF" in salidas_deseadas and gif_conf:
         producto_gif = gif_conf.get("producto")
         gif_frames = frames_por_producto.get(producto_gif, [])
+        # breakpoint()
         if gif_frames:
             loop = gif_conf.get("loop", 0)
             frame_seconds = gif_conf.get("frame_seconds")

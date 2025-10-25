@@ -1,0 +1,28 @@
+defaults:
+  tipo_imagen: MCMI
+  #cordoba
+  recorte: [-28, -35, -67, -61.0]
+  satelite: GOES19
+
+jobs:
+  - nombre: gifejemplocordoba
+    rango:
+      inicio: 2025-08-30T13:00:00
+      fin: 2025-08-30T20:00:00
+      paso_minutos: 60
+    productos: [daily_microphysics]
+    # 1. Especificamos que la única salida deseada es GIF
+    salidas: [GIF,PNG]
+
+    # 2. Configuramos los detalles del GIF
+    png_conf:
+      productos: [true_color, air_mass]
+      shapefile_provincias: shapefiles/provincias/linea_de_limite_070111Line.shp
+    gif_conf:
+      producto: daily_microphysics               
+      out_dir: gifs/
+      filename_pattern: "{producto}_{ts}.gif"
+      fps: 1
+      frame_seconds: 1000.0
+      loop: 0          # 0 = infinito
+#problemas de memoria lamentablemente, no se puede hacer un gif con muchos frames

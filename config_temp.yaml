@@ -1,0 +1,26 @@
+defaults:
+  data_dir: data
+  tipo_imagen: MCMI
+  satelite: GOES19
+  png_conf:
+    out_dir: salidas
+  geotiff_conf:
+    out_dir: geotiffs
+jobs:
+- nombre: demo
+  tipo_imagen: MCMI
+  productos:
+  - day_land_cloud
+  salidas:
+  - GeoTIFF
+  satelite: GOES19
+  recorte:
+  - -20.0
+  - -56.0
+  - -75.0
+  - -53.0
+  datetime: '2025-08-30T18:00:00'
+  geotiff_conf:
+    out_dir: geotiffs/
+    filename_pattern: '{producto}_{ts}.tif'
+    producto: day_land_cloud

@@ -2,7 +2,7 @@ name: goes-env
 channels:
   - conda-forge
 dependencies:
-  - python >= 3.10
+  - python = 3.11
   - s3fs
   - xarray
   - netCDF4
@@ -24,6 +24,8 @@ dependencies:
   - ffmpeg      
   - imageio[ffmpeg]
   - imageio-ffmpeg
+  - pyarrow          # 🔹 agregado (necesario para streamlit y pandas recientes)
+  - streamlit        # 🔹 agregado (la interfaz web)
   - tqdm
   - pip
   - pip:
