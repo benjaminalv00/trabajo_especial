@@ -30,3 +30,25 @@ services:
     # con el mismo User ID y Group ID del usuario actual de la máquina host.
     user: "${UID}:${GID}"
     command: --config /app/config/example_docker.yml
+
+# 🌐 Servicio de interfaz web con Streamlit
+  goes-ui:
+    image: goes-processor        # usa la misma imagen ya construida
+    container_name: goes-ui
+    ports:
+      - "8501:8501"              # puerto local -> puerto interno
+    volumes:
+      - ./data:/app/data
+      - ./salidas:/app/salidas
+      - ./geotiffs:/app/geotiffs
+      - ./shapefiles:/app/shapefiles
+      - .:/app
+    user: "${UID}:${GID}"
+
+    entrypoint:
+      [
+        "/opt/conda/bin/python",  # <-- Asegúrate de usar la ruta completa
+        "-m", "streamlit", "run", "app.py",
+        "--server.port=8501",
+        "--server.address=0.0.0.0"
+      ]

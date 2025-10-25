@@ -10,9 +10,9 @@ jobs:
 - nombre: demo
   tipo_imagen: MCMI
   productos:
-  - true_color
+  - day_land_cloud
   salidas:
-  - PNG
+  - GeoTIFF
   satelite: GOES19
   recorte:
   - -20.0
@@ -20,3 +20,7 @@ jobs:
   - -75.0
   - -53.0
   datetime: '2025-08-30T18:00:00'
+  geotiff_conf:
+    out_dir: geotiffs/
+    filename_pattern: '{producto}_{ts}.tif'
+    producto: day_land_cloud
