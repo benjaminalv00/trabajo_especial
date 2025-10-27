@@ -7,20 +7,30 @@ defaults:
   geotiff_conf:
     out_dir: geotiffs
 jobs:
-- nombre: demo
+- nombre: demoddd
   tipo_imagen: MCMI
-  productos:
-  - day_land_cloud
+  productos: &id001
+  - true_color
+  - daily_microphysics
   salidas:
+  - PNG
   - GeoTIFF
+  - COMPONENTES_RGB
   satelite: GOES19
   recorte:
   - -20.0
   - -56.0
   - -75.0
   - -53.0
+  componentes_rgb_conf:
+    formato: GEOTIFF
+    out_dir: componentes/
+    filename_pattern: '{producto}_{ts}_{canal}.tif'
+    productos: *id001
   datetime: '2025-08-30T18:00:00'
   geotiff_conf:
     out_dir: geotiffs/
     filename_pattern: '{producto}_{ts}.tif'
-    producto: day_land_cloud
+    productos:
+    - daily_microphysics
+    - true_color

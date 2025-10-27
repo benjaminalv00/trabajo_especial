@@ -126,6 +126,32 @@ def save_rgb_geotiff(imagen_RGB, x, y, f0, f1, c0, c1, crs, output_path):
         dst.write(rgb_array[2], 3)
 
 
+def save_band_geotiff(band_array, x, y, f0, f1, c0, c1, crs, output_path):
+    # Convertir a float32
+    band_array = band_array.astype("float32")
+
+    height, width = band_array.shape
+    crs_rio = CRS.from_string(crs.proj4_init)
+    img_extent_recorte = (x[c0], y[f1], x[c1], y[f0])
+    transform = from_bounds(*img_extent_recorte, width=width, height=height)
+    pixel_width = (x[c1] - x[c0]) / width
+    pixel_height = (y[f0] - y[f1]) / height  # cuidado con el signo
+    transform = from_origin(x[c0], y[f0], pixel_width, pixel_height)
+
+    with rasterio.open(
+        output_path,
+        "w",
+        driver="GTiff",
+        height=height,
+        width=width,
+        count=1,
+        dtype="float32",
+        crs=crs_rio,
+        transform=transform,
+    ) as dst:
+        dst.write(band_array, 1)
+
+
 import numpy as np
 from scipy.ndimage import zoom
 

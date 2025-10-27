@@ -60,6 +60,12 @@ productos = st.multiselect(
 # Selección de tipo de salida
 salidas = st.multiselect("Salidas deseadas", ["PNG", "GeoTIFF"], ["PNG"])
 
+# Checkbox para componentes, ahora es una opción general
+st.subheader("Componentes RGB individuales")
+exportar_componentes = st.checkbox(
+    "Exportar componentes R, G, B como GeoTIFF individuales"
+)
+
 # Fecha o rango
 modo_fecha = st.radio("Modo de fecha", ["Única", "Rango"])
 if modo_fecha == "Única":
@@ -134,6 +140,16 @@ if st.button("🚀 Ejecutar procesamiento"):
     if recorte:
         job["recorte"] = recorte
 
+    if exportar_componentes:
+        if "COMPONENTES_RGB" not in salidas:
+            salidas.append("COMPONENTES_RGB")
+        job["salidas"] = salidas
+        job["componentes_rgb_conf"] = {
+            "formato": "GEOTIFF",
+            "out_dir": "componentes/",
+            "filename_pattern": "{producto}_{ts}_{canal}.tif",
+            "productos": productos,
+        }
     # Añadir fecha o rango
     job.update(fecha_conf)
 

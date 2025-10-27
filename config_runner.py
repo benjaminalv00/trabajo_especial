@@ -10,7 +10,7 @@ from goes_rgb.recipes_registry import RECIPE_REGISTRY
 import imageio.v2 as imageio
 import numpy as np
 import math
-from goes_rgb.helpers import save_rgb_geotiff  # NUEVO
+from goes_rgb.helpers import save_rgb_geotiff, save_band_geotiff  # NUEVO
 
 
 def load_config(path):
@@ -148,38 +148,19 @@ def run_job(job, defaults):
                         "filename_pattern", "{producto}_{ts}_{canal}.png"
                     )
 
-                    # Soporte de cmap global o por canal
-                    cmap_cfg = ccfg.get("cmap", "gray")
-                    cmaps = (
-                        cmap_cfg
-                        if isinstance(cmap_cfg, dict)
-                        else {"R": cmap_cfg, "G": cmap_cfg, "B": cmap_cfg}
-                    )
-
                     canales = {"R": rgb[..., 0], "G": rgb[..., 1], "B": rgb[..., 2]}
                     for canal, data in canales.items():
-                        # asegurar [0,1]
-                        if np.issubdtype(data.dtype, np.floating):
-                            band = np.clip(data, 0, 1)
-                        else:
-                            band = np.clip(data.astype(np.float32) / 255.0, 0, 1)
                         fname = (
                             pattern.replace("{producto}", nombre)
                             .replace("{ts}", ts)
                             .replace("{canal}", canal)
                         )
                         out_path = comp_out / fname
-                        plot_band_with_coastlines(
-                            band,
-                            extent=extent,
-                            crs_geo=crs,
-                            title=f"{nombre} {canal} {ts}",
-                            provincias_shp=shp,
-                            show=False,
-                            save=True,
-                            cmap=cmaps.get(canal, "gray"),
-                            save_path=str(out_path),
+                        save_band_geotiff(
+                            data, x, y, f0, f1, c0, c1, crs, str(out_path)
                         )
+                        print(f"Componente GeoTIFF generado: {out_path}")
+                        generated_files.append(str(out_path))
 
             # GeoTIFF (uno por fecha). Elegí producto con geotiff.producto o geotiff.productos
             # 5. Comprobar si se debe exportar GeoTIFF
