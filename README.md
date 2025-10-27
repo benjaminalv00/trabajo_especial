@@ -1,6 +1,6 @@
 # GOES RGB Processor 
 
-## Como ejecutar con docker con GUI
+## Como ejecutar el procesador mediante interfaz grafica con Docker
 Desde el directorio raiz, ejecutar 
 ```
 docker compose build
@@ -18,7 +18,7 @@ Si estas tratando de ejecutar docker con windows, directamente correr
 docker compose up -d goes-ui
 ```
 
-## Interfaz gráfica 
+## Como ejecutar el procesador mediante interfaz grafica sin Docker
 Correr 
 
 ```
