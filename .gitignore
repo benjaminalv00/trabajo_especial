@@ -181,3 +181,5 @@ notebooks/
 gifs/*
 salidas
 geotiffs/
+videos/
+config_temp.yml
