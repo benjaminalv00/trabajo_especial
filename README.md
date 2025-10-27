@@ -1,7 +1,10 @@
 # GOES RGB Processor 
+Herramienta para descargar, procesar y exportar productos RGB de GOES-16/18/19 a partir de archivos L1b/L2. Permite generar imágenes PNG, animaciones GIF, videos MP4 y salidas GeoTIFF georreferenciadas, todo configurable vía GUI y YAML.
 
 ## Como ejecutar el procesador mediante interfaz grafica con Docker
-Desde el directorio raiz, ejecutar 
+Si no tiene instalado Docker, puede dirigirse a el siguiente [link](https://docs.docker.com/desktop/) para descargarlo
+
+una vez instalado Docker, desde el directorio raiz, ejecutar 
 ```
 docker compose build
 ```
@@ -12,23 +15,14 @@ Luego, correr
 UID=$(id -u) GID=$(id -g) docker compose up -d goes-ui
 ```
 
-Si estas tratando de ejecutar docker con windows, directamente correr 
+Si estas tratando de ejecutar docker con windows, en vez de la linea de arriba correr 
 
 ```
 docker compose up -d goes-ui
 ```
 
-## Como ejecutar el procesador mediante interfaz grafica sin Docker
-Correr 
-
-```
-UID=$(id -u) GID=$(id -g) docker compose up -d goes-ui
-```
-
 
 ## Generación de PNG, GIF, MP4 y GeoTIFF
-
-Herramienta para descargar, procesar y exportar productos RGB de GOES-16/18/19 a partir de archivos L1b/L2. Permite generar imágenes PNG, animaciones GIF, videos MP4 y salidas GeoTIFF georreferenciadas, todo configurable vía YAML.
 
 ## Estructura del proyecto
 
@@ -82,13 +76,6 @@ conda env update -n goes-env -f environment.yml --prune
 conda activate goes-env
 ```
 
-2) Notas sobre dependencias clave
-- GeoTIFF: requiere rasterio, pyproj y GDAL.
-- MP4: usa imageio + ffmpeg. Se recomienda tener imageio-ffmpeg o ffmpeg del sistema instalado.
-- Gráficos: cartopy, shapely, matplotlib.
-
-Si tu environment.yml es mínimo, asegúrate de incluir: numpy, matplotlib, pyyaml, rasterio, pyproj, cartopy, gdal, imageio, imageio-ffmpeg, netCDF4, boto3, s3fs, xarray, scipy, pandas (según tus necesidades).
-
 ## Uso rápido
 
 0) Asegurate de tener el entorno activo:
@@ -138,61 +125,31 @@ Un archivo YAML declara defaults y una lista de jobs. Cada job indica qué produ
 Imagen única (PNG y GeoTIFF):
 ```
 defaults:
-	tipo_imagen: MCMI
-	recorte: [-18.6, -56.45, -79.79, -53.0]
-	export:
-		out_dir: salidas/
-		shapefile_provincias: shapefiles/provincias/linea_de_limite_070111Line.shp
-		show: false
+  tipo_imagen: MCMI
+  recorte: [-18.6, -56.45, -79.79, -50.0]
 
 jobs:
-	- nombre: true_color_1500
-		datetime: 2025-08-30T15:00:00
-		productos: [true_color]
-		geotiff:
-			producto: true_color
-			out_dir: geotiffs/
-			filename: true_color_20250830_1500.tif
+  - nombre: serie_geotiff
+    datetime: 2022-09-21T12:00:00
+    productos: [true_color, air_mass]
+    # 1. Especificamos que la única salida deseada es GeoTIFF
+    salidas: [GeoTIFF,PNG] 
+
+    # 2. Configuramos los detalles del GeoTIFF
+    png_conf:
+      productos: [true_color, air_mass]
+      shapefile_provincias: shapefiles/provincias/linea_de_limite_070111Line.shp
+    geotiff_conf:
+      productos: [true_color, air_mass]
+      out_dir: geotiffs/
+      filename_pattern: "{producto}_{ts}.tif"
 ```
 
-Serie temporal con MP4 y componentes RGB:
-```
-jobs:
-	- nombre: serie_con_video
-		rango:
-			inicio: 2022-09-21T12:00:00
-			fin: 2022-09-21T14:00:00
-			paso_minutos: 60
-		productos: [day_convection, true_color]
-		video:
-			producto: day_convection
-			frame_seconds: 1.5
-			out_dir: videos/
-			filename: serie_day_convection.mp4
-			codec: libx264
-			crf: 23
-			preset: medium
-			pix_fmt: yuv420p
-		componentes_rgb:
-			productos: [day_convection]
-			out_dir: componentes/
-			filename_pattern: "{producto}_{ts}_{canal}.png"
-			cmap: gray
-```
+## Como ejecutar el procesador mediante interfaz grafica sin Docker
+Asumiendo que ya tiene el entorno activado, simplemente correr 
 
-Serie con GeoTIFF por fecha:
 ```
-jobs:
-	- nombre: serie_geotiff
-		rango:
-			inicio: 2022-09-21T12:00:00
-			fin: 2022-09-21T14:00:00
-			paso_minutos: 60
-		productos: [day_convection, true_color]
-		geotiff:
-			producto: day_convection
-			out_dir: geotiffs/
-			filename_pattern: "{producto}_{ts}.tif"
+streamlit run app.py
 ```
 
 ## Salidas
@@ -225,8 +182,6 @@ jobs:
 ```
 python main.py --config config/video_example.yml
 ```
-- Estilo/código: se sugiere usar black y pre-commit si están en el entorno.
-- 
 
 ## Como ejecutar con docker (sin GUI)
 Desde el directorio raiz, ejecutar 
