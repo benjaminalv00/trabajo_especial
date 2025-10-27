@@ -1,4 +1,32 @@
-## GOES RGB Processor – generación de PNG, GIF, MP4 y GeoTIFF
+# GOES RGB Processor 
+
+## Como ejecutar con docker con GUI
+Desde el directorio raiz, ejecutar 
+```
+docker compose build
+```
+
+Luego, correr
+
+```
+UID=$(id -u) GID=$(id -g) docker compose up -d goes-ui
+```
+
+Si estas tratando de ejecutar docker con windows, directamente correr 
+
+```
+docker compose up -d goes-ui
+```
+
+## Interfaz gráfica 
+Correr 
+
+```
+UID=$(id -u) GID=$(id -g) docker compose up -d goes-ui
+```
+
+
+## Generación de PNG, GIF, MP4 y GeoTIFF
 
 Herramienta para descargar, procesar y exportar productos RGB de GOES-16/18/19 a partir de archivos L1b/L2. Permite generar imágenes PNG, animaciones GIF, videos MP4 y salidas GeoTIFF georreferenciadas, todo configurable vía YAML.
 
@@ -200,7 +228,7 @@ python main.py --config config/video_example.yml
 - Estilo/código: se sugiere usar black y pre-commit si están en el entorno.
 - 
 
-## Como ejecutar con docker
+## Como ejecutar con docker (sin GUI)
 Desde el directorio raiz, ejecutar 
 ```
 docker-compose build
@@ -208,11 +236,4 @@ docker-compose build
 Luego, correr
 ```
 UID=$(id -u) GID=$(id -g) docker-compose run --rm goes-processor --config /app/config/example.yml
-```
-
-## Interfaz gráfica 
-Correr 
-
-```
-UID=$(id -u) GID=$(id -g) docker compose up -d goes-ui
 ```
