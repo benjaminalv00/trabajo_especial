@@ -148,7 +148,7 @@ if st.button("🚀 Ejecutar procesamiento"):
             "formato": "GEOTIFF",
             "out_dir": "componentes/",
             "filename_pattern": "{producto}_{ts}_{canal}.tif",
-            "productos": productos,
+            "productos": productos.copy(),
         }
     # Añadir fecha o rango
     job.update(fecha_conf)
