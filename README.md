@@ -25,27 +25,23 @@ Para acceder al front-end, en el navegador ingresar a
 http://localhost:8501/
 ```
 
-## Estructura del proyecto
-
+## Estructura del Proyecto
 ```
 trabajo_especial/
 ├── config/                 # Ejemplos de configuración YAML
-│   ├── example.yml
-│   ├── gif_example.yml
-│   ├── video_example.yml
-│   └── geotiff.yml
+├── componentes/            # Salidas de componentes RGB (GeoTIFF)
 ├── data/                   # Descargas NetCDF (entrada)
 ├── geotiffs/               # Salidas GeoTIFF (si se configuran)
 ├── gifs/                   # Salidas GIF
 ├── videos/                 # Salidas MP4
 ├── salidas/                # PNG por producto/fecha
-├── goes_rgb/               # Código fuente
+├── goes_rgb/               # Código fuente del procesador
 │   ├── visualization.py    # Plot y guardado de imágenes
 │   ├── recipes_registry.py # Productos RGB disponibles
-│   ├── helpers.py          # Utilidades (GeoTIFF, reproyección puntual)
+│   ├── helpers.py          # Utilidades (GeoTIFF, etc.)
 │   └── ...
-├── main.py                 # Entrada principal (CLI)
-├── config_runner.py        # Ejecuta jobs desde YAML
+├── app.py                  # <-- Interfaz gráfica principal (Streamlit)
+├── config_runner.py        # Lógica para ejecutar jobs desde configuración
 ├── environment.yml         # 📦 Entorno Conda
 └── README.md               # Este archivo
 ```
