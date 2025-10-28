@@ -4,6 +4,8 @@ Herramienta para descargar, procesar y exportar productos RGB de GOES-16/18/19 a
 [Referencias de productos
 ](https://rammb2.cira.colostate.edu/training/visit/quick_reference/#tab17)
 
+Por sugerencias o dudas, contactarse a benjamin.alvarez@mi.unc.edu.ar
+
 
 ## Como ejecutar el procesador mediante interfaz grafica con Docker
 Si no tiene instalado Docker, puede dirigirse a el siguiente [link](https://docs.docker.com/desktop/) para descargarlo
