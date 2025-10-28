@@ -101,8 +101,10 @@ def run_job(job, defaults):
 
         out_dir = Path(png_conf.get("out_dir", "salidas"))
         out_dir.mkdir(parents=True, exist_ok=True)
-        shp = png_conf.get("shapefile_provincias")
-
+        shp = png_conf.get(
+            "shapefile_provincias",
+            "shapefiles/provincias/linea_de_limite_070111Line.shp",
+        )
         for nombre in productos:
             rgb = processor.get_product(nombre)
             titulo = f"{job.get('nombre', nombre)} {nombre} {dt:%Y%m%d_%H%M}"
