@@ -25,8 +25,6 @@ Para acceder al front-end, en el navegador ingresar a
 http://localhost:8501/
 ```
 
-## Generación de PNG, GIF, MP4 y GeoTIFF
-
 ## Estructura del proyecto
 
 ```
