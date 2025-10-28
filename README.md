@@ -15,12 +15,15 @@ Luego, correr
 UID=$(id -u) GID=$(id -g) docker compose up -d goes-ui
 ```
 
-Si estas tratando de ejecutar docker con windows, en vez de la linea de arriba correr 
+Si estas tratando de ejecutar docker con windows, seguir los siguientes pasos:
+1) en el archivo ```docker-compose.yml``` habra que comenta o eliminar las líneas user: "${UID}:${GID}" de los DOS servicios.  
+Con esto ya tenemos la aplicación corriendo.
+2)  correr ``` docker compose up -d goes-ui ```
 
+Para acceder al front-end, en el navegador ingresar a 
 ```
-docker compose up -d goes-ui
+http://localhost:8501/
 ```
-
 
 ## Generación de PNG, GIF, MP4 y GeoTIFF
 
@@ -93,34 +96,7 @@ python main.py --demo
 python main.py --config config/example.yml
 ```
 
-## Formato de configuración (YAML)
-
-Un archivo YAML declara defaults y una lista de jobs. Cada job indica qué productos generar y en qué fechas.
-
-- defaults
-	- tipo_imagen: MCMI | L1B (por ahora MCMI es el flujo principal)
-	- recorte: [latN, latS, lonW, lonE] en grados (opcional)
-	- export:
-		- out_dir: carpeta para PNG
-		- shapefile_provincias: ruta a shapefile opcional para delinear provincias
-		- show: false/true (mostrar interactivamente)
-
-- jobs[n]
-	- nombre: etiqueta del job
-	- satelite: GOES16 | GOES18 | GOES19 (por defecto GOES19)
-	- tipo_imagen: MCMI | L1B (opcional, sobrescribe defaults)
-	- productos: [lista de nombres] que existen en recipes_registry.py (p.ej. true_color, day_convection, daily_microphysics)
-	- Fechas (elige una de estas):
-		- datetime: "YYYY-MM-DDTHH:MM:SS"
-		- datetimes: [ ... varias fechas ... ]
-		- rango: { inicio, fin, paso_minutos }
-	- Opciones de salida por job (todas opcionales):
-		- gif: { producto, fps | frame_seconds, out_dir, filename, loop }
-		- video: { producto, fps | frame_seconds, out_dir, filename, codec, crf, preset, pix_fmt }
-		- geotiff: { producto | productos, out_dir, filename | filename_pattern }
-		- componentes_rgb: { producto | productos, out_dir, filename_pattern, cmap }
-
-### Ejemplos
+### Ejemplos de YAML de configuración
 
 Imagen única (PNG y GeoTIFF):
 ```
@@ -153,11 +129,11 @@ streamlit run app.py
 ```
 
 ## Salidas
-- PNG por producto/fecha: en salidas/ (o el directorio definido en export.out_dir), nombre: {nombre_job}_{producto}_{YYYYMMDD_HHMM}.png
-- GIF: en gifs/ o video.gif_conf.out_dir
-- MP4: en videos/ o video.out_dir (H.264 yuv420p, fps derivado de frame_seconds o fps)
-- GeoTIFF: en geotiffs/ o geotiff.out_dir; con CRS y transform del producto (CRS nativo GOES)
-- Componentes RGB: en componentes/ (o componentes_rgb.out_dir), 3 PNG por producto/fecha (R/G/B)
+- PNG por producto/fecha: en salidas/ , nombre: {nombre_job}_{producto}_{YYYYMMDD_HHMM}.png
+- GIF: en gifs/ 
+- MP4: en videos/
+- GeoTIFF: en geotiffs/ ; con CRS y transform del producto (CRS nativo GOES)
+- Componentes RGB: en componentes/ , 3 GeoTIFF por producto/fecha (R/G/B)
 
 ## Notas de proyección y recorte
 - El raster se mantiene en el CRS nativo geostacionario de GOES (no hay warp a EPSG:4326).
