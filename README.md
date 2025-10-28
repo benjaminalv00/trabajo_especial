@@ -8,7 +8,7 @@ Herramienta para descargar, procesar y exportar productos RGB de GOES-16/18/19 a
 ## Como ejecutar el procesador mediante interfaz grafica con Docker
 Si no tiene instalado Docker, puede dirigirse a el siguiente [link](https://docs.docker.com/desktop/) para descargarlo
 
-una vez instalado Docker, desde el directorio raiz, ejecutar 
+una vez instalado Docker, desde el directorio raiz de este repositorio, ejecutar 
 ```
 docker compose build
 ```
