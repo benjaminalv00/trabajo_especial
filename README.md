@@ -1,6 +1,10 @@
 # GOES RGB Processor 
 Herramienta para descargar, procesar y exportar productos RGB de GOES-16/18/19 a partir de archivos L1b/L2. Permite generar imágenes PNG, animaciones GIF, videos MP4 y salidas GeoTIFF georreferenciadas, todo configurable vía GUI y YAML.
 
+[Referencias de productos
+](https://rammb2.cira.colostate.edu/training/visit/quick_reference/#tab17)
+
+
 ## Como ejecutar el procesador mediante interfaz grafica con Docker
 Si no tiene instalado Docker, puede dirigirse a el siguiente [link](https://docs.docker.com/desktop/) para descargarlo
 
