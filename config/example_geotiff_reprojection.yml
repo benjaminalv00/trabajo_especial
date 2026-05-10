@@ -1,0 +1,28 @@
+defaults:
+  tipo_imagen: MCMI
+  satelite: GOES16
+  recorte: [-18.6, -56.45, -79.79, -53.0]  # latN, latS, lonW, lonE
+
+  # Configuración de salidas PNG
+  png_conf:
+    out_dir: salidas
+    show: false
+    shapefile_provincias: shapefiles/provincias/linea_de_limite_070111Line.shp
+
+  # Configuración de GeoTIFF con reproyecciones
+  geotiff_conf:
+    out_dir: geotiffs
+    producto: true_color
+    reproyecciones:
+      - epsg: "EPSG:3857"
+        suffix: "_web_mercator"
+      - epsg: "EPSG:3395"
+        suffix: "_world_mercator"
+      - epsg: "EPSG:22171"
+        suffix: "_gauss_kruger_faja1"
+
+jobs:
+  - nombre: demo_reprojection
+    datetime: 2025-08-30T15:00:00
+    productos: [true_color]
+    salidas: [PNG, GEOTIFF]

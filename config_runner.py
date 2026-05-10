@@ -10,7 +10,8 @@ from goes_rgb.recipes_registry import RECIPE_REGISTRY
 import imageio.v2 as imageio
 import numpy as np
 import math
-from goes_rgb.helpers import save_rgb_geotiff, save_band_geotiff  # NUEVO
+from goes_rgb.helpers import save_rgb_geotiff, save_band_geotiff
+from scripts.GeoTIFF_translate_coord_output import reproject_geotiff
 
 
 def load_config(path):
@@ -193,6 +194,23 @@ def run_job(job, defaults):
                         save_rgb_geotiff(rgb, x, y, f0, f1, c0, c1, crs, str(tiff_path))
                         print(f"GeoTIFF generado: {tiff_path}")
                         generated_files.append(str(tiff_path))
+                        
+                        # Reproyectar si está configurado
+                        reproyecciones = gt_cfg.get("reproyecciones", [])
+                        if reproyecciones:
+                            for reproj_conf in reproyecciones:
+                                epsg = reproj_conf.get("epsg")
+                                suffix = reproj_conf.get("suffix", "")
+                                if epsg:
+                                    # Generar nombre del archivo reproyectado
+                                    reproj_name = tif_name.replace(".tif", f"{suffix}.tif")
+                                    reproj_path = gt_out / reproj_name
+                                    try:
+                                        reproject_geotiff(str(tiff_path), str(reproj_path), epsg)
+                                        print(f"GeoTIFF reproyectado: {reproj_path}")
+                                        generated_files.append(str(reproj_path))
+                                    except Exception as e:
+                                        print(f"Error al reproyectar a {epsg}: {e}")
 
             # Acumular frames para GIF/Video del producto elegido
             # Esto se hace si PNG, GIF o VIDEO están en las salidas, ya que ambos dependen de los frames PNG
