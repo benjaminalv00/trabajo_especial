@@ -140,6 +140,12 @@ streamlit run app.py
 - El recorte se define en lon/lat; se transforma a índices de píxel y se aplica al generar el RGB. El extent usado para plot y GeoTIFF es consistente con ese recorte.
 - Los shapefiles se proyectan al vuelo (Cartopy) sobre el lienzo del producto.
 
+## Recetas personalizadas
+- Las recetas custom se registran de forma manual en `goes_rgb/recipes_registry.py`.
+- Los archivos de receta viven en `config/custom_recipes/` y deben exponer una función `recipe()` que devuelva el dict con `funcs`, `bands` y `emissive_units`.
+- Esto evita el auto-descubrimiento y hace el arranque más predecible.
+- Guía paso a paso: `docs/CUSTOM_RECIPES.md`.
+
 ## Consejos y resolución de problemas
 - MP4 se ve “raro” o no abre:
 	- Asegura fps > 0 (o usa frame_seconds razonable). El código limita a un mínimo interno.

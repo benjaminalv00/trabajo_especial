@@ -1,17 +1,7 @@
 import yaml
 from pathlib import Path
 from datetime import datetime, timedelta
-from goes_rgb.l2_abi_image import ABIImageMCMI
-from goes_rgb.l1b_abi_image import ABIImageL1b
-from goes_rgb.rgb_processor import RGBProcessor
-from goes_rgb.visualization import plot_rgb_with_coastlines, plot_band_with_coastlines
-
 from goes_rgb.recipes_registry import RECIPE_REGISTRY
-import imageio.v2 as imageio
-import numpy as np
-import math
-from goes_rgb.helpers import save_rgb_geotiff, save_band_geotiff
-from scripts.GeoTIFF_translate_coord_output import reproject_geotiff
 
 
 def load_config(path):
@@ -37,6 +27,9 @@ def expand_datetimes(job):
 
 
 def build_image(dt, defaults, job):
+    from goes_rgb.l2_abi_image import ABIImageMCMI
+    from goes_rgb.l1b_abi_image import ABIImageL1b
+
     modo = job.get("tipo_imagen", defaults.get("tipo_imagen", "MCMI")).upper()
     # NOTE: The default satellite has been changed from "GOES19" to "GOES16".
     # This change may affect existing configurations that relied on the previous default.
@@ -56,6 +49,10 @@ def build_image(dt, defaults, job):
 
 
 def run_job(job, defaults):
+    import math
+    from goes_rgb.rgb_processor import RGBProcessor
+    from goes_rgb.visualization import plot_rgb_with_coastlines
+
     productos = job["productos"]
     recorte_conf = job.get("recorte", defaults.get("recorte"))
     generated_files = []
@@ -131,6 +128,8 @@ def run_job(job, defaults):
             # 4. Comprobar si se deben exportar componentes
 
             if "COMPONENTES_RGB" in salidas_deseadas and comp_conf:
+                from goes_rgb.helpers import save_band_geotiff
+
                 ccfg = comp_conf
                 productos_cc = ccfg.get("productos")
                 producto_c = ccfg.get("producto")
@@ -168,6 +167,9 @@ def run_job(job, defaults):
             # GeoTIFF (uno por fecha). Elegí producto con geotiff.producto o geotiff.productos
             # 5. Comprobar si se debe exportar GeoTIFF
             if "GEOTIFF" in salidas_deseadas and geotiff_conf:
+                from goes_rgb.helpers import save_rgb_geotiff
+                from scripts.GeoTIFF_translate_coord_output import reproject_geotiff
+
                 gt_cfg = geotiff_conf
                 productos_gt = gt_cfg.get("productos")
                 producto_gt = gt_cfg.get("producto")
@@ -223,6 +225,9 @@ def run_job(job, defaults):
                 and video_conf
                 and nombre == video_conf.get("producto")
             ):
+                import imageio.v2 as imageio
+                import numpy as np
+
                 # Si los PNG no se guardan, necesitamos una ruta temporal o manejar los frames en memoria.
                 # Por ahora, asumimos que si se quiere GIF/Video, los PNG se generan.
                 # Una mejora sería generar los PNG en una carpeta temporal si no se piden explícitamente.
