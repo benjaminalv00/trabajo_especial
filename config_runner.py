@@ -72,6 +72,9 @@ def run_job(job, defaults):
         **defaults.get("componentes_rgb_conf", {}),
         **job.get("componentes_rgb_conf", {}),
     }
+    # Si no se definieron productos para componentes, usar todos los productos del job
+    if comp_conf.get("productos") is None and comp_conf.get("producto") is None:
+        comp_conf["productos"] = list(productos)
     # Mapear producto -> lista de rutas PNG
     frames_por_producto = {}
     nombre_job = job.get("nombre", "job")
