@@ -3,6 +3,10 @@ from pyproj import Transformer
 from rasterio.transform import from_bounds, from_origin
 from rasterio.crs import CRS
 import rasterio
+from goes_rgb.logging_utils import get_logger
+
+
+logger = get_logger(__name__)
 
 
 def calibrate_imag(imagen, metadato, U="T"):
@@ -10,7 +14,7 @@ def calibrate_imag(imagen, metadato, U="T"):
     Calibrar una imagen de GOES L1b según el metadato.
     """
     canal = int(metadato["band_id"][:])
-    print("Calibrando la imagen", canal)
+    logger.info("Calibrando la imagen %s", canal)
     imag_cal = imagen.copy()
     if canal >= 7:
         # Parámetros de calibracion

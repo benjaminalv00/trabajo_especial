@@ -1,5 +1,9 @@
 import argparse
 from config_runner import run_from_config
+from goes_rgb.logging_utils import setup_logging, get_logger
+
+
+logger = get_logger(__name__)
 
 
 def run_manual_demo():
@@ -9,6 +13,7 @@ def run_manual_demo():
     from goes_rgb.rgb_recipes import true_color
     from goes_rgb.visualization import plot_rgb_with_coastlines
 
+    logger.info("Iniciando demo manual")
     img = ABIImageMCMI(datetime(2022, 9, 21, 18, 0))
     img.download()
     img.open()
@@ -26,19 +31,26 @@ def run_manual_demo():
         provincias_shp="shapefiles/provincias/linea_de_limite_070111Line.shp",
         show=True,
     )
+    logger.info("Demo manual finalizada")
 
 
 def main():
+    setup_logging()
     parser = argparse.ArgumentParser()
     parser.add_argument("--config", help="Ruta a YAML de batch.")
     parser.add_argument("--demo", action="store_true", help="Ejecuta demo manual.")
     args = parser.parse_args()
-    if args.demo:
-        run_manual_demo()
-    elif args.config:
-        run_from_config(args.config)
-    else:
-        parser.error("Usar --config archivo.yml o --demo")
+    try:
+        if args.demo:
+            run_manual_demo()
+        elif args.config:
+            logger.info("Ejecutando desde configuración: %s", args.config)
+            run_from_config(args.config)
+        else:
+            parser.error("Usar --config archivo.yml o --demo")
+    except Exception:
+        logger.exception("Fallo la ejecución principal")
+        raise
 
 
 if __name__ == "__main__":

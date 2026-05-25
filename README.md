@@ -147,6 +147,10 @@ streamlit run app.py
 - Guía paso a paso: `docs/CUSTOM_RECIPES.md`.
 
 ## Consejos y resolución de problemas
+- Logs del sistema:
+  - Se guardan en `logs/goes_rgb.log` por defecto.
+  - Podés cambiar el nivel con `GOES_RGB_LOG_LEVEL`.
+  - Podés cambiar el archivo con `GOES_RGB_LOG_FILE`.
 - MP4 se ve “raro” o no abre:
 	- Asegura fps > 0 (o usa frame_seconds razonable). El código limita a un mínimo interno.
 	- Para compatibilidad H.264 (yuv420p), las dimensiones del video deben ser pares; el writer agrega padding si hace falta.

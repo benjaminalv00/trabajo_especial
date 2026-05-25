@@ -1,6 +1,10 @@
 import rasterio
 from rasterio.warp import calculate_default_transform, reproject, Resampling
 from pyproj import CRS as PyCRS
+from goes_rgb.logging_utils import get_logger
+
+
+logger = get_logger(__name__)
 
 
 def reproject_geotiff(src_path, dst_path, dst_crs, resampling_method=Resampling.bilinear):
@@ -39,7 +43,7 @@ def reproject_geotiff(src_path, dst_path, dst_crs, resampling_method=Resampling.
                     dst_crs=dst_crs,
                     resampling=resampling_method,
                 )
-    print(f"Reproyección completada: {dst_path}")
+    logger.info("Reproyección completada: %s", dst_path)
 
 
 def reproject_to_web_mercator(src_path, dst_path=None):
@@ -120,7 +124,11 @@ def reproject_to_gauss_kruger_argentina(src_path, dst_path=None, faja=None):
             else:
                 faja = 7  # 54°W
             
-            print(f"Faja detectada automáticamente: {faja} (longitud central: {lon_center:.2f}°)")
+            logger.info(
+                "Faja detectada automáticamente: %s (longitud central: %.2f°)",
+                faja,
+                lon_center,
+            )
     
     if faja not in range(1, 8):
         raise ValueError(f"Faja debe ser entre 1 y 7, se recibió: {faja}")
