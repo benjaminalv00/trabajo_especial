@@ -10,6 +10,14 @@ if str(PROJECT_ROOT) not in sys.path:
 
 def _install_pyproj_stub():
     module = types.ModuleType("pyproj")
+    module.__path__ = []
+
+    exceptions_module = types.ModuleType("pyproj.exceptions")
+
+    class ProjError(Exception):
+        pass
+
+    exceptions_module.ProjError = ProjError
 
     class _Transformer:
         @staticmethod
@@ -20,8 +28,34 @@ def _install_pyproj_stub():
 
             return _IdentityTransformer()
 
+    class _CRS:
+        def __init__(self, srs=""):
+            self.srs = srs
+
+        @staticmethod
+        def from_user_input(value, **kwargs):
+            return _CRS(str(value))
+
+        @staticmethod
+        def from_string(value):
+            return _CRS(str(value))
+
+        @property
+        def proj4_init(self):
+            return self.srs
+
+    class _Geod:
+        def __init__(self, *args, **kwargs):
+            pass
+
+        def inv(self, *args, **kwargs):
+            return 0.0, 0.0, 0.0
+
     module.Transformer = _Transformer
+    module.CRS = _CRS
+    module.Geod = _Geod
     sys.modules["pyproj"] = module
+    sys.modules["pyproj.exceptions"] = exceptions_module
 
 
 def _install_rasterio_stub():
@@ -97,9 +131,59 @@ def _install_scipy_stub():
     sys.modules["scipy.ndimage"] = ndimage_module
 
 
+def _install_cartopy_stub():
+    cartopy_module = types.ModuleType("cartopy")
+    cartopy_module.__path__ = []
+
+    crs_module = types.ModuleType("cartopy.crs")
+    feature_module = types.ModuleType("cartopy.feature")
+    io_module = types.ModuleType("cartopy.io")
+    shapereader_module = types.ModuleType("cartopy.io.shapereader")
+
+    class _Geostationary:
+        def __init__(self, central_longitude=None, satellite_height=None):
+            self.central_longitude = central_longitude
+            self.satellite_height = satellite_height
+
+    class _PlateCarree:
+        def __init__(self, *args, **kwargs):
+            pass
+
+    class _ShapelyFeature:
+        def __init__(self, geometries, crs, **kwargs):
+            self.geometries = list(geometries)
+            self.crs = crs
+            self.kwargs = kwargs
+
+    class _Reader:
+        def __init__(self, path):
+            self.path = path
+
+        def geometries(self):
+            return []
+
+    crs_module.Geostationary = _Geostationary
+    crs_module.PlateCarree = _PlateCarree
+    feature_module.BORDERS = object()
+    feature_module.ShapelyFeature = _ShapelyFeature
+    shapereader_module.Reader = _Reader
+    io_module.shapereader = shapereader_module
+
+    cartopy_module.crs = crs_module
+    cartopy_module.feature = feature_module
+    cartopy_module.io = io_module
+
+    sys.modules["cartopy"] = cartopy_module
+    sys.modules["cartopy.crs"] = crs_module
+    sys.modules["cartopy.feature"] = feature_module
+    sys.modules["cartopy.io"] = io_module
+    sys.modules["cartopy.io.shapereader"] = shapereader_module
+
+
 # Los entornos locales pueden tener estas dependencias instaladas pero
 # mal configuradas (por ejemplo, PROJ/GDAL sin base de datos). Para que
 # la suite sea determinista, forzamos stubs livianos en tests.
 _install_pyproj_stub()
 _install_rasterio_stub()
 _install_scipy_stub()
+_install_cartopy_stub()
