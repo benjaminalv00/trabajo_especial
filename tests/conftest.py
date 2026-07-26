@@ -3,6 +3,11 @@ import types
 from pathlib import Path
 
 
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
+
 def _install_pyproj_stub():
     module = types.ModuleType("pyproj")
 
@@ -76,7 +81,14 @@ def _install_scipy_stub():
     ndimage_module = types.ModuleType("scipy.ndimage")
 
     def _zoom(array, factors, order=1):
-        return array
+        import numpy as _np
+
+        result = _np.asarray(array)
+        for axis, factor in enumerate(factors):
+            target_size = max(1, int(round(result.shape[axis] * factor)))
+            indices = _np.linspace(0, result.shape[axis] - 1, target_size).astype(int)
+            result = _np.take(result, indices, axis=axis)
+        return result
 
     ndimage_module.zoom = _zoom
     scipy_module.ndimage = ndimage_module
@@ -85,17 +97,9 @@ def _install_scipy_stub():
     sys.modules["scipy.ndimage"] = ndimage_module
 
 
-try:
-    import pyproj  # noqa: F401
-except ModuleNotFoundError:
-    _install_pyproj_stub()
-
-try:
-    import rasterio  # noqa: F401
-except ModuleNotFoundError:
-    _install_rasterio_stub()
-
-try:
-    from scipy import ndimage  # noqa: F401
-except ModuleNotFoundError:
-    _install_scipy_stub()
+# Los entornos locales pueden tener estas dependencias instaladas pero
+# mal configuradas (por ejemplo, PROJ/GDAL sin base de datos). Para que
+# la suite sea determinista, forzamos stubs livianos en tests.
+_install_pyproj_stub()
+_install_rasterio_stub()
+_install_scipy_stub()
