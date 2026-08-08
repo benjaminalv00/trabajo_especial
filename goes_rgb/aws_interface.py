@@ -2,6 +2,10 @@
 import os
 from glob import glob
 from datetime import datetime
+from goes_rgb.logging_utils import get_logger
+
+
+logger = get_logger(__name__)
 
 
 def download_file_with_progress(fs, s3_url, local_path, chunk_size=512*1024):
@@ -47,7 +51,7 @@ def download_file_with_progress(fs, s3_url, local_path, chunk_size=512*1024):
                     Callback=progress_callback
                 )
     except Exception as e:
-        print(f"Error al descargar: {e}")
+        logger.exception("Error al descargar archivo desde %s", s3_url)
         if os.path.exists(local_path):
             os.remove(local_path)
         raise
@@ -102,7 +106,10 @@ def download_goes_files_for_datetime(
     if product == "ABI-L2-MCMIPF":
         local_matches = _find_local_goes_files(local_dir, product, dt)
         if local_matches:
-            print(f"Usando archivo local existente: {os.path.basename(local_matches[0])}")
+            logger.info(
+                "Usando archivo local existente: %s",
+                os.path.basename(local_matches[0]),
+            )
             return local_matches[:1]
 
         import s3fs
@@ -112,12 +119,12 @@ def download_goes_files_for_datetime(
         try:
             files = fs.ls(prefix)
         except FileNotFoundError:
-            print(f"No files found for prefix: {prefix}")
+            logger.warning("No files found for prefix: %s", prefix)
             return []
 
         matched = [f for f in files if f.endswith(".nc")]
         if not matched:
-            print(f"No se encontraron archivos para {dt}.")
+            logger.warning("No se encontraron archivos para %s", dt)
             return []
         s3_url = "s3://" + matched[0]
         filename = os.path.basename(matched[0])
@@ -133,19 +140,23 @@ def download_goes_files_for_datetime(
         try:
             files = fs.ls(prefix)
         except FileNotFoundError:
-            print(f"No files found for prefix: {prefix}")
+            logger.warning("No files found for prefix: %s", prefix)
             return []
 
         for channel in channels:
             local_matches = _find_local_goes_files(local_dir, product, dt, channel=channel)
             if local_matches:
-                print(f"Usando archivo local existente para {channel}: {os.path.basename(local_matches[0])}")
+                logger.info(
+                    "Usando archivo local existente para %s: %s",
+                    channel,
+                    os.path.basename(local_matches[0]),
+                )
                 downloaded_files.append(local_matches[0])
                 continue
 
             matched = [f for f in files if channel in f and f.endswith(".nc")]
             if not matched:
-                print(f"Canal {channel} no encontrado para {dt}.")
+                logger.warning("Canal %s no encontrado para %s", channel, dt)
                 continue
             s3_url = "s3://" + matched[0]
             filename = os.path.basename(matched[0])

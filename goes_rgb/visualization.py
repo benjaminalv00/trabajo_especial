@@ -6,6 +6,10 @@ import cartopy.feature as cfeature
 import cartopy.io.shapereader as shpreader
 from cartopy.feature import ShapelyFeature
 import matplotlib.ticker as mticker
+from goes_rgb.logging_utils import get_logger
+
+
+logger = get_logger(__name__)
 
 
 def plot_radiance(radiancia, titulo="Radiancia", cmap="gray"):
@@ -87,7 +91,7 @@ def plot_rgb_with_coastlines(
     if save:
         os.makedirs(os.path.dirname(output_file), exist_ok=True)
         plt.savefig(output_file, dpi=300, bbox_inches="tight")
-        print(f"Gráfico guardado en {output_file}")
+        logger.info("Gráfico guardado en %s", output_file)
     if show:
         plt.show()
     else:
@@ -163,7 +167,7 @@ def plot_band_with_coastlines(
     if save:
         os.makedirs(os.path.dirname(output_file) or ".", exist_ok=True)
         plt.savefig(output_file, dpi=300, bbox_inches="tight")
-        print(f"Gráfico guardado en {output_file}")
+        logger.info("Gráfico guardado en %s", output_file)
     if show:
         plt.show()
     else:

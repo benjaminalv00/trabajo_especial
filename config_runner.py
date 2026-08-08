@@ -2,9 +2,14 @@ import yaml
 from pathlib import Path
 from datetime import datetime, timedelta
 from goes_rgb.recipes_registry import RECIPE_REGISTRY
+from goes_rgb.logging_utils import get_logger
+
+
+logger = get_logger(__name__)
 
 
 def load_config(path):
+    logger.info("Cargando configuración desde %s", path)
     with open(path, "r", encoding="utf-8") as f:
         return yaml.safe_load(f)
 
@@ -53,6 +58,8 @@ def run_job(job, defaults):
     from goes_rgb.rgb_processor import RGBProcessor
     from goes_rgb.visualization import plot_rgb_with_coastlines
 
+    nombre_job = job.get("nombre", "job")
+    logger.info("Iniciando job %s", nombre_job)
     productos = job["productos"]
     recorte_conf = job.get("recorte", defaults.get("recorte"))
     generated_files = []
@@ -77,9 +84,8 @@ def run_job(job, defaults):
         comp_conf["productos"] = list(productos)
     # Mapear producto -> lista de rutas PNG
     frames_por_producto = {}
-    nombre_job = job.get("nombre", "job")
-
     for dt in expand_datetimes(job):
+        logger.info("Procesando datetime %s para job %s", dt.isoformat(), nombre_job)
         img = build_image(dt, defaults, job)
         img.download()
         img.open()
@@ -164,7 +170,7 @@ def run_job(job, defaults):
                         save_band_geotiff(
                             data, x, y, f0, f1, c0, c1, crs, str(out_path)
                         )
-                        print(f"Componente GeoTIFF generado: {out_path}")
+                        logger.info("Componente GeoTIFF generado: %s", out_path)
                         generated_files.append(str(out_path))
 
             # GeoTIFF (uno por fecha). Elegí producto con geotiff.producto o geotiff.productos
@@ -197,7 +203,7 @@ def run_job(job, defaults):
                         )
                         tiff_path = gt_out / tif_name
                         save_rgb_geotiff(rgb, x, y, f0, f1, c0, c1, crs, str(tiff_path))
-                        print(f"GeoTIFF generado: {tiff_path}")
+                        logger.info("GeoTIFF generado: %s", tiff_path)
                         generated_files.append(str(tiff_path))
                         
                         # Reproyectar si está configurado
@@ -212,10 +218,18 @@ def run_job(job, defaults):
                                     reproj_path = gt_out / reproj_name
                                     try:
                                         reproject_geotiff(str(tiff_path), str(reproj_path), epsg)
-                                        print(f"GeoTIFF reproyectado: {reproj_path}")
+                                        logger.info(
+                                            "GeoTIFF reproyectado: %s a %s",
+                                            reproj_path,
+                                            epsg,
+                                        )
                                         generated_files.append(str(reproj_path))
                                     except Exception as e:
-                                        print(f"Error al reproyectar a {epsg}: {e}")
+                                        logger.exception(
+                                            "Error al reproyectar %s a %s",
+                                            tiff_path,
+                                            epsg,
+                                        )
 
             # Acumular frames para GIF/Video del producto elegido
             # Esto se hace si PNG, GIF o VIDEO están en las salidas, ya que ambos dependen de los frames PNG
@@ -278,8 +292,12 @@ def run_job(job, defaults):
                     if frame.dtype != np.uint8:
                         frame = np.clip(frame, 0, 255).astype(np.uint8)
                     writer.append_data(frame)
-            print(
-                f"GIF generado: {gif_path} frames={len(gif_frames)} delay={frame_seconds}s loop={loop}"
+            logger.info(
+                "GIF generado: %s frames=%s delay=%ss loop=%s",
+                gif_path,
+                len(gif_frames),
+                frame_seconds,
+                loop,
             )
 
     # Generar MP4 si corresponde
@@ -345,8 +363,9 @@ def run_job(job, defaults):
             ) as writer:
                 for fr in padded:
                     writer.append_data(fr)
-            print(f"MP4 generado: {video_path} frames=8 fps={fps}")
+                logger.info("MP4 generado: %s frames=%s fps=%s", video_path, len(padded), fps)
 
+            logger.info("Job %s finalizado. Archivos generados: %s", nombre_job, len(generated_files))
     return generated_files
 
 
@@ -355,6 +374,11 @@ def run_from_config(ruta):
     total_generated_files = []
     defaults = cfg.get("defaults", {})
     for job in cfg.get("jobs", []):
-        generated_files = run_job(job, defaults)
-        total_generated_files.extend(generated_files)
+        try:
+            generated_files = run_job(job, defaults)
+            total_generated_files.extend(generated_files)
+        except Exception:
+            logger.exception("Fallo el job %s", job.get("nombre", "job"))
+            raise
+    logger.info("Ejecución completa. Total de archivos generados: %s", len(total_generated_files))
     return total_generated_files

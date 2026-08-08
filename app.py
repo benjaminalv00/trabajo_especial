@@ -4,6 +4,11 @@ from pathlib import Path
 from datetime import datetime
 from config_runner import run_from_config
 from goes_rgb.recipes_registry import RECIPE_REGISTRY
+from goes_rgb.logging_utils import setup_logging, get_logger
+
+
+setup_logging()
+logger = get_logger(__name__)
 
 
 # ============================================================
@@ -179,6 +184,7 @@ if st.button("🚀 Ejecutar procesamiento"):
     try:
         with st.spinner("🚀 Procesando..."):
             status.info("Cargando datos y generando imágenes — por favor espere.")
+            logger.info("Ejecutando procesamiento desde Streamlit con job %s", nombre)
             generated_files = run_from_config(yaml_path)
         progress.progress(100)
         status.empty()
@@ -193,5 +199,6 @@ if st.button("🚀 Ejecutar procesamiento"):
             st.code(lista_formateada, language="bash")
 
     except Exception as e:
-        # status.error("❌ Error durante el procesamiento.")
+        logger.exception("Error durante la ejecución desde Streamlit")
         st.error(f"❌ Error durante la ejecución: {e}")
+        st.exception(e)
