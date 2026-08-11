@@ -26,7 +26,7 @@ def test_registry_contains_builtin_and_custom_recipes():
         "differential_water_vapor",
         "falso_color",
         "true_color_personalizado",
-        "cicatriz_quemado",
+        "burn_scar",
     }
 
     assert expected_names.issubset(RECIPE_REGISTRY)

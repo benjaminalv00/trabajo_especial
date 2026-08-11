@@ -13,7 +13,7 @@ def _bands(c02, c03, c06):
 
 
 def _recipe():
-    return RECIPE_REGISTRY["cicatriz_quemado"]()
+    return RECIPE_REGISTRY["burn_scar"]()
 
 
 def test_recipe_contract():

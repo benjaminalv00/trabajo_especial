@@ -1,0 +1,29 @@
+defaults:
+  tipo_imagen: MCMI
+  satelite: GOES16
+  recorte: [-30.0, -34.0, -67.0, -62.0]
+  png_conf:
+    out_dir: salidas/
+    shapefile_provincias: shapefiles/provincias/linea_de_limite_070111Line.shp
+    show: false
+
+jobs:
+  - nombre: cordoba_junio_con_nubes
+    datetime: 2024-06-15T16:00:00
+    productos: [burn_scar]
+    salidas: [PNG]
+
+  - nombre: cordoba_agosto_referencia_limpia
+    datetime: 2024-08-25T16:00:00
+    productos: [burn_scar]
+    salidas: [PNG]
+
+  - nombre: cordoba_pre_incendio
+    datetime: 2024-09-15T16:00:00
+    productos: [burn_scar]
+    salidas: [PNG]
+
+  - nombre: cordoba_post_incendio
+    datetime: 2024-09-24T16:00:00
+    productos: [burn_scar]
+    salidas: [PNG]

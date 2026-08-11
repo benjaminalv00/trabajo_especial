@@ -56,7 +56,7 @@ RECIPE_REGISTRY["true_color_personalizado"] = _load_custom_recipe(
     "config.custom_recipes.true_color_personalizado",
     "config/custom_recipes/true_color_personalizado.py",
 )
-RECIPE_REGISTRY["cicatriz_quemado"] = _load_custom_recipe(
-    "config.custom_recipes.cicatriz_quemado",
-    "config/custom_recipes/cicatriz_quemado.py",
+RECIPE_REGISTRY["burn_scar"] = _load_custom_recipe(
+    "config.custom_recipes.burn_scar",
+    "config/custom_recipes/burn_scar.py",
 )
