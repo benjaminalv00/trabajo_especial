@@ -40,6 +40,11 @@ def plot_rgb_with_coastlines(
     """
     fig = plt.figure(figsize=(10, 10))
     ax = plt.axes(projection=crs_geo)
+    # Fija explícitamente el extent de los ejes antes de dibujar. Sin esto,
+    # cartopy/shapely puede fallar al calcular el polígono del borde del mapa
+    # para las etiquetas de las gridlines en recortes grandes (GEOSException:
+    # "Points of LinearRing do not form a closed linestring").
+    ax.set_extent(extent, crs=crs_geo)
 
     ax.imshow(
         imagen_rgb, origin="upper", extent=extent, transform=crs_geo, vmin=0, vmax=1
@@ -54,7 +59,13 @@ def plot_rgb_with_coastlines(
     )
     gl.bottom_labels = True
     gl.right_labels = False
-    gl.top_labels = False
+    # gl.top_labels se deja en su valor por defecto (True). Asignarlo
+    # explícitamente a False dispara, en recortes grandes cercanos al borde
+    # del disco visible, un bug de cartopy/shapely al calcular el polígono
+    # del borde del mapa para las etiquetas (GEOSException: "Points of
+    # LinearRing do not form a closed linestring"). El costo visual de
+    # dejarlo en True es que las etiquetas de longitud también aparecen
+    # arriba (redundante con las de abajo, pero no rompe el render).
     gl.left_labels = True
 
     # Agrandar los ticks de lat/lon

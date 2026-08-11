@@ -83,6 +83,9 @@ class FakeAxes:
     def __init__(self):
         self.calls = []
 
+    def set_extent(self, *args, **kwargs):
+        self.calls.append(("set_extent", args, kwargs))
+
     def imshow(self, *args, **kwargs):
         self.calls.append(("imshow", args, kwargs))
 
