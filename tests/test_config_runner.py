@@ -283,3 +283,8 @@ def test_run_job_covers_main_output_branches(tmp_path, monkeypatch):
     assert any(path.suffix == ".mp4" for path in generated)
     assert any(path.suffix == ".gif" for path in generated)
     assert len(written_frames) >= 1
+
+    # Las animaciones tambien se reportan en el valor de retorno, que es lo
+    # que la GUI muestra al usuario como "Archivos generados".
+    assert any(r.endswith(".gif") for r in result)
+    assert any(r.endswith(".mp4") for r in result)

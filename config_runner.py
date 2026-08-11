@@ -190,10 +190,7 @@ def run_job(job, defaults):
         conf = confs.get(acc_nombre)
         if acc_nombre in salidas_deseadas and conf:
             frames = frames_por_producto.get(conf.get("producto"), [])
-            # El valor de retorno de finalizar() se descarta a proposito: el
-            # codigo original no incluia las rutas de GIF/MP4 en
-            # generated_files, y este refactor preserva esa semantica exacta.
-            handler.finalizar(frames, conf)
+            generated_files.extend(handler.finalizar(frames, conf))
 
     return generated_files
 
