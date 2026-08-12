@@ -173,13 +173,28 @@ cython_debug/
 # PyPI configuration file
 .pypirc
 # Relativo al proyecto
-data/
 notebooks/data/
 *.tif*
 products/*
-notebooks/ 
-gifs/*
-salidas
-geotiffs/
-videos/
+notebooks/
 config_temp.yml
+config_temp.yaml
+
+# Directorios de salida/cache en runtime. Se ignora el contenido pero se
+# versiona un .gitkeep para que el directorio exista tras un clone limpio:
+# si no existe, el daemon de Docker crea el source del bind mount como
+# root:root y el contenedor (que corre con HOST_UID:HOST_GID) no puede escribir.
+data/*
+!data/.gitkeep
+salidas/*
+!salidas/.gitkeep
+gifs/*
+!gifs/.gitkeep
+videos/*
+!videos/.gitkeep
+geotiffs/*
+!geotiffs/.gitkeep
+componentes/*
+!componentes/.gitkeep
+componentes_rgb/*
+!componentes_rgb/.gitkeep

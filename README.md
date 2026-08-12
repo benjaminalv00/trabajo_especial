@@ -18,13 +18,20 @@ docker compose build
 Luego, correr
 
 ```
-UID=$(id -u) GID=$(id -g) docker compose up -d goes-ui
+HOST_UID=$(id -u) HOST_GID=$(id -g) docker compose up -d goes-ui
 ```
 
-Si estas tratando de ejecutar docker con windows, seguir los siguientes pasos:
-1) en el archivo ```docker-compose.yml``` habra que comenta o eliminar las líneas user: "${UID}:${GID}" de los DOS servicios.  
-Con esto ya tenemos la aplicación corriendo.
-2)  correr ``` docker compose up -d goes-ui ```
+> **Por qué `HOST_UID` y no `UID`:** en bash `UID` es una variable de solo
+> lectura, así que `UID=$(id -u) docker compose ...` falla y el contenedor
+> termina corriendo como root, dejando los archivos generados con dueño root
+> en las carpetas de salida. Usando `HOST_UID`/`HOST_GID` esto no ocurre.
+
+En Windows (PowerShell) no hace falta definir nada: el `docker-compose.yml`
+usa `1000:1000` por defecto si las variables no están seteadas.
+
+```
+docker compose up -d goes-ui
+```
 
 Para acceder al front-end, en el navegador ingresar a 
 ```
@@ -172,5 +179,9 @@ docker-compose build
 ```
 Luego, correr
 ```
-UID=$(id -u) GID=$(id -g) docker-compose run --rm goes-processor --config /app/config/example.yml
+HOST_UID=$(id -u) HOST_GID=$(id -g) docker compose run --rm goes-processor --config /app/config/example.yml
 ```
+
+Las salidas aparecen directamente en las carpetas del repositorio
+(`salidas/`, `gifs/`, `geotiffs/`, `videos/`, `componentes/`,
+`componentes_rgb/`), porque están montadas como volúmenes.

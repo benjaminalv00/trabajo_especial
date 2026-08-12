@@ -19,16 +19,26 @@ services:
       - ./gifs:/app/gifs
       - ./geotiffs:/app/geotiffs
       - ./videos:/app/videos
+      - ./componentes:/app/componentes
+      - ./componentes_rgb:/app/componentes_rgb
       - ./shapefiles:/app/shapefiles
       - ./data:/app/data  # Mounts the 'data' directory from the host to '/app/data' in the container.
 
-      
-    # Este es el comando por defecto que se ejecutará al iniciar el contenedor.
-    # Es la parte final del comando 'docker run'.
-    # --- LÍNEA NUEVA ---
-    # Le decimos a Docker que ejecute el proceso del contenedor
-    # con el mismo User ID y Group ID del usuario actual de la máquina host.
-    user: "${UID}:${GID}"
+    # Ejecuta el proceso del contenedor con el User ID y Group ID del usuario
+    # del host, para que los archivos generados no queden como root.
+    # IMPORTANTE: se usa HOST_UID/HOST_GID y no UID/GID porque UID es una
+    # variable de solo lectura en bash: `UID=$(id -u) docker compose ...`
+    # falla silenciosamente y el contenedor termina corriendo como root.
+    # Invocar como: HOST_UID=$(id -u) HOST_GID=$(id -g) docker compose ...
+    user: "${HOST_UID:-1000}:${HOST_GID:-1000}"
+
+    # Al correr con un UID que no existe dentro de la imagen, HOME queda sin
+    # definir y las librerias que escriben cache (matplotlib, cartopy) fallan
+    # con PermissionError sobre '/.local'.
+    environment:
+      HOME: /tmp
+      MPLCONFIGDIR: /tmp/matplotlib
+
     command: --config /app/config/example_docker.yml
 
 # 🌐 Servicio de interfaz web con Streamlit
@@ -43,7 +53,12 @@ services:
       - ./geotiffs:/app/geotiffs
       - ./shapefiles:/app/shapefiles
       - .:/app
-    user: "${UID}:${GID}"
+    # Ver la nota en goes-processor sobre HOST_UID/HOST_GID.
+    user: "${HOST_UID:-1000}:${HOST_GID:-1000}"
+
+    environment:
+      HOME: /tmp
+      MPLCONFIGDIR: /tmp/matplotlib
 
     entrypoint:
       [
