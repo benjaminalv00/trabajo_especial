@@ -90,7 +90,12 @@ def plot_rgb_with_coastlines(
         )
         ax.add_feature(provincias)
 
-    plt.tight_layout()
+    # NO usar plt.tight_layout() aca: es incompatible con los GeoAxes de
+    # cartopy (aspecto fijo + etiquetas de gridlines). En recortes
+    # elongados deja ax.get_position() en NaN, y despues el gridliner
+    # falla al armar el poligono del borde del mapa (GEOSException:
+    # "Points of LinearRing do not form a closed linestring").
+    # El recorte de margenes ya lo hace savefig(bbox_inches="tight").
     # plt.title(title, fontsize=20)
     # Save plot to file en carpeta products
     output_file = save_path if save_path else os.path.join("products", f"{title}.png")
@@ -165,7 +170,12 @@ def plot_band_with_coastlines(
         )
         ax.add_feature(provincias)
 
-    plt.tight_layout()
+    # NO usar plt.tight_layout() aca: es incompatible con los GeoAxes de
+    # cartopy (aspecto fijo + etiquetas de gridlines). En recortes
+    # elongados deja ax.get_position() en NaN, y despues el gridliner
+    # falla al armar el poligono del borde del mapa (GEOSException:
+    # "Points of LinearRing do not form a closed linestring").
+    # El recorte de margenes ya lo hace savefig(bbox_inches="tight").
     plt.title(title, fontsize=20)
     # cbar = plt.colorbar(im, ax=ax, orientation='vertical', fraction=0.046, pad=0.04)
     # cbar.set_label("Valor de banda", fontsize=16)
