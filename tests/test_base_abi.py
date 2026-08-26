@@ -96,3 +96,51 @@ def test_base_abi_image_get_band_array_and_bbox_indices(monkeypatch):
 
     indices = image.get_bbox_indices(-30, -20, -60, -50)
     assert indices == (0, 10, 0, 10)
+
+
+def test_set_window_guarda_ventana_e_invalida_bandas_perezosas():
+    image = DummyABIImage(
+        dt=datetime(2026, 1, 1),
+        product="ABI-L2-MCMIPF",
+        channels=["C01", "C02"],
+        satellite="noaa-goes16",
+        local_dir="data",
+    )
+    assert image.window is None
+
+    # Una banda perezosa ya materializada y otra eager (L1b) que no debe tocarse.
+    image.datasets = {
+        "C01": {"band_array": [[1, 2], [3, 4]], "lazy": True},
+        "C02": {"band_array": [[5, 6], [7, 8]]},
+    }
+
+    image.set_window(10, 20, 30, 40)
+
+    assert image.window == (10, 20, 30, 40)
+    assert image.datasets["C01"]["band_array"] is None
+    assert image.datasets["C02"]["band_array"] == [[5, 6], [7, 8]]
+
+    # Repetir la misma ventana no vuelve a invalidar nada.
+    image.datasets["C01"]["band_array"] = [[9]]
+    image.set_window(10, 20, 30, 40)
+    assert image.datasets["C01"]["band_array"] == [[9]]
+
+
+def test_aplicar_window_recorta_solo_si_hay_ventana():
+    import numpy as np
+
+    image = DummyABIImage(
+        dt=datetime(2026, 1, 1),
+        product="ABI-L2-MCMIPF",
+        channels=["C01"],
+        satellite="noaa-goes16",
+        local_dir="data",
+    )
+    arr = np.arange(100).reshape(10, 10)
+
+    assert image._aplicar_window(arr) is arr
+
+    image.set_window(2, 5, 3, 7)
+    recortado = image._aplicar_window(arr)
+    assert recortado.shape == (3, 4)
+    assert np.array_equal(recortado, arr[2:5, 3:7])

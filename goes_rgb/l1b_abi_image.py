@@ -62,6 +62,10 @@ class ABIImageL1b(BaseABIImage):
     def get_band_array(self, band):
         """
         Devuelve el array de datos de la banda solicitada.
+
+        A diferencia de MCMI, L1b trae un NetCDF por banda y open() los lee
+        completos, asi que aca la ventana no ahorra I/O: se aplica antes de
+        calibrar para que calibrate_imag opere solo sobre el recorte.
         """
         if band in self.datasets:
             emissive_bands = [
@@ -77,7 +81,7 @@ class ABIImageL1b(BaseABIImage):
                 "C16",
             ]
             return calibrate_imag(
-                self.datasets[band]["band_array"],
+                self._aplicar_window(self.datasets[band]["band_array"]),
                 self.datasets[band]["metadata"],
                 U="Ref" if band not in emissive_bands else "T",
             )

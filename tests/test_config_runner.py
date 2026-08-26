@@ -175,7 +175,7 @@ def test_run_job_covers_main_output_branches(tmp_path, monkeypatch):
     def fake_expand_datetimes(job):
         yield datetime(2026, 1, 1, 12, 30)
 
-    def fake_build_image(dt, defaults, job):
+    def fake_build_image(dt, defaults, job, bandas=None):
         return FakeImage()
 
     def fake_plot_rgb_with_coastlines(rgb, **kwargs):

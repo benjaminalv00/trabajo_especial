@@ -26,7 +26,16 @@ def expand_datetimes(job):
             cur += timedelta(minutes=paso)
 
 
-def build_image(dt, defaults, job):
+def build_image(dt, defaults, job, bandas=None):
+    """
+    Construye la imagen ABI del tipo pedido por el job.
+
+    `bandas` es el conjunto de bandas que las recetas van a necesitar. Solo se
+    usa para L1b, donde cada banda es un NetCDF aparte y acotar los canales
+    evita descargar y abrir archivos que nadie va a mirar. En MCMI es un unico
+    archivo multibanda y el ahorro lo da la lectura perezosa de
+    ABIImageMCMI.get_band_array.
+    """
     from goes_rgb.l2_abi_image import ABIImageMCMI
     from goes_rgb.l1b_abi_image import ABIImageL1b
 
@@ -38,6 +47,8 @@ def build_image(dt, defaults, job):
     satelite = job.get("satelite", defaults.get("satelite", "GOES16")).upper()
     data_dir = job.get("data_dir", defaults.get("data_dir", "data"))
     channels = job.get("canales", defaults.get("canales", None))
+    if channels is None and bandas:
+        channels = sorted(bandas)
     if modo == "MCMI":
         return ABIImageMCMI(
             dt, satellite=f"noaa-{satelite.lower()}", local_dir=data_dir
@@ -70,9 +81,9 @@ def _build_output_confs(job, defaults, productos):
     return confs
 
 
-def _acquire_image(dt, defaults, job):
+def _acquire_image(dt, defaults, job, bandas=None):
     """Descarga y abre la imagen ABI para una fecha (seam de adquisición)."""
-    img = build_image(dt, defaults, job)
+    img = build_image(dt, defaults, job, bandas=bandas)
     img.download()
     img.open()
     crs, x, y = img.get_projection_params()
@@ -94,11 +105,10 @@ def _compute_roi(img, recorte_conf, x, y):
     return rec_tuple, extent, f0, f1, c0, c1
 
 
-def _build_processor(img, productos, rec_tuple):
+def _build_processor(img, recipes, rec_tuple):
     """Genera los productos RGB solicitados para un frame (seam de generación)."""
     from goes_rgb.rgb_processor import RGBProcessor
 
-    recipes = {p: RECIPE_REGISTRY[p]() for p in productos}
     processor = RGBProcessor(img, recipes, recorte=rec_tuple)
     processor.generate_all()
     return processor
@@ -115,15 +125,26 @@ def run_job(job, defaults):
     recorte_conf = job.get("recorte", defaults.get("recorte"))
     generated_files = []
 
+    # Las recetas se resuelven una sola vez para todo el job (no cambian entre
+    # fechas) y de ellas sale el conjunto de bandas realmente necesarias.
+    recipes = {p: RECIPE_REGISTRY[p]() for p in productos}
+    bandas = {b for receta in recipes.values() for b in receta["bands"]}
+
     salidas_deseadas = {s.upper() for s in job.get("salidas", ["PNG"])}
     confs = _build_output_confs(job, defaults, productos)
     frames_por_producto = {}
     nombre_job = job.get("nombre", "job")
 
     for dt in expand_datetimes(job):
-        img, crs, x, y = _acquire_image(dt, defaults, job)
+        img, crs, x, y = _acquire_image(dt, defaults, job, bandas=bandas)
         rec_tuple, extent, f0, f1, c0, c1 = _compute_roi(img, recorte_conf, x, y)
-        processor = _build_processor(img, productos, rec_tuple)
+        if rec_tuple is not None:
+            # Con la ventana fijada, la imagen entrega las bandas ya recortadas,
+            # asi que RGBProduct no tiene que volver a recortar (recorte=None).
+            img.set_window(*rec_tuple)
+            processor = _build_processor(img, recipes, None)
+        else:
+            processor = _build_processor(img, recipes, rec_tuple)
 
         out_dir = Path(confs["PNG"].get("out_dir", "salidas"))
         out_dir.mkdir(parents=True, exist_ok=True)

@@ -31,6 +31,9 @@ class BaseABIImage(ABC):
         self.files = []
         self.datasets = {}
         self.calibrated_data = {}  # Almacena datos calibrados por banda
+        # Ventana de lectura (f0, f1, c0, c1) en indices de pixel, o None
+        # para el disco completo. Ver set_window().
+        self.window = None
 
     def download(self):
         # manejar mejor que pasa si no hay archivos
@@ -57,6 +60,30 @@ class BaseABIImage(ABC):
         Cada clase concreta debe implementar su propia lógica de calibración.
         """
         pass
+
+    def set_window(self, f0, f1, c0, c1):
+        """
+        Limita la lectura de bandas a la ventana [f0:f1, c0:c1].
+
+        Fijarla antes de pedir bandas evita leer y procesar el disco completo
+        cuando solo interesa un recorte: las subclases leen del NetCDF unicamente
+        ese bloque. Invalida las bandas perezosas ya materializadas, porque
+        quedaron cacheadas con la ventana anterior.
+        """
+        nueva = (int(f0), int(f1), int(c0), int(c1))
+        if nueva == self.window:
+            return
+        self.window = nueva
+        for entrada in self.datasets.values():
+            if isinstance(entrada, dict) and entrada.get("lazy"):
+                entrada["band_array"] = None
+
+    def _aplicar_window(self, arr):
+        """Recorta un array 2D a la ventana activa (no-op si no hay ventana)."""
+        if self.window is None:
+            return arr
+        f0, f1, c0, c1 = self.window
+        return arr[f0:f1, c0:c1]
 
     def get_band_array(self, band):
         # Método común opcional

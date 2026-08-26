@@ -917,3 +917,121 @@ def test_rgb_processor_generate_all_and_missing_product():
     assert processor.get_product("demo").shape == (1, 2, 3)
     with pytest.raises(KeyError):
         processor.get_product("missing")
+
+
+class _VarMCMIEspia:
+    """Variable MCMI que registra cuando se materializa y respeta el slicing."""
+
+    def __init__(self, data, lecturas):
+        self._data = np.asarray(data)
+        self._lecturas = lecturas
+        self.ndim = self._data.ndim
+
+    def __getitem__(self, item):
+        return _VarMCMIEspia(self._data[item], self._lecturas)
+
+    @property
+    def values(self):
+        self._lecturas.append(self._data.shape)
+        return self._data
+
+
+class _DatasetMCMIEspia:
+    def __init__(self, lecturas):
+        base = np.arange(16 * 100, dtype=float).reshape(16, 10, 10)
+        self.variables = {
+            f"CMI_C{i + 1:02d}": _VarMCMIEspia(base[i], lecturas) for i in range(16)
+        }
+
+    def __getitem__(self, key):
+        return self.variables[key]
+
+
+def _imagen_mcmi_espia(monkeypatch, lecturas):
+    monkeypatch.setattr(
+        l2_abi_image, "open_goes_file", lambda path: _DatasetMCMIEspia(lecturas)
+    )
+    image = l2_abi_image.ABIImageMCMI(
+        datetime(2026, 1, 1), satellite="noaa-goes16", local_dir="data"
+    )
+    image.files = ["fake.nc"]
+    image.open()
+    return image
+
+
+def test_mcmi_open_no_lee_ninguna_banda(monkeypatch):
+    lecturas = []
+    image = _imagen_mcmi_espia(monkeypatch, lecturas)
+
+    # Las 16 bandas quedan registradas pero ninguna materializada.
+    assert sorted(image.datasets) == [f"C{i + 1:02d}" for i in range(16)]
+    assert lecturas == []
+    assert all(e["band_array"] is None for e in image.datasets.values())
+
+
+def test_mcmi_solo_lee_las_bandas_pedidas_y_las_cachea(monkeypatch):
+    lecturas = []
+    image = _imagen_mcmi_espia(monkeypatch, lecturas)
+
+    primera = image.get_band_array("C02")
+    segunda = image.get_band_array("C02")
+
+    assert len(lecturas) == 1  # la segunda llamada sale del cache
+    assert segunda is primera
+    assert np.array_equal(primera, np.arange(100, 200, dtype=float).reshape(10, 10))
+
+
+def test_mcmi_get_band_array_lee_solo_la_ventana(monkeypatch):
+    lecturas = []
+    image = _imagen_mcmi_espia(monkeypatch, lecturas)
+    image.set_window(2, 5, 3, 7)
+
+    arr = image.get_band_array("C01")
+
+    # Lo que se materializa es el recorte, no el disco completo.
+    assert lecturas == [(3, 4)]
+    assert arr.shape == (3, 4)
+    esperado = np.arange(100, dtype=float).reshape(10, 10)[2:5, 3:7]
+    assert np.array_equal(arr, esperado)
+
+
+def test_mcmi_cambiar_la_ventana_invalida_el_cache(monkeypatch):
+    lecturas = []
+    image = _imagen_mcmi_espia(monkeypatch, lecturas)
+
+    image.set_window(0, 4, 0, 4)
+    assert image.get_band_array("C01").shape == (4, 4)
+    image.set_window(0, 2, 0, 2)
+    assert image.get_band_array("C01").shape == (2, 2)
+    assert lecturas == [(4, 4), (2, 2)]
+
+
+def test_mcmi_get_band_array_banda_inexistente(monkeypatch):
+    image = _imagen_mcmi_espia(monkeypatch, [])
+    with pytest.raises(ValueError, match="C99"):
+        image.get_band_array("C99")
+
+
+def test_l1b_get_band_array_aplica_la_ventana_antes_de_calibrar(monkeypatch):
+    calibradas = []
+
+    def fake_calibrate_imag(array, metadata, U=None):
+        calibradas.append(array.shape)
+        return array
+
+    monkeypatch.setattr(l1b_abi_image, "calibrate_imag", fake_calibrate_imag)
+
+    image = l1b_abi_image.ABIImageL1b(
+        datetime(2026, 1, 1), product="ABI-L1b-RadF", channels=["C01"]
+    )
+    completo = np.arange(100, dtype=float).reshape(10, 10)
+    image.datasets = {"C01": {"band_array": completo, "metadata": {}}}
+
+    assert image.get_band_array("C01").shape == (10, 10)
+
+    image.set_window(2, 5, 3, 7)
+    arr = image.get_band_array("C01")
+
+    # calibrate_imag recibe ya el recorte, no el disco completo.
+    assert calibradas == [(10, 10), (3, 4)]
+    assert np.array_equal(arr, completo[2:5, 3:7])

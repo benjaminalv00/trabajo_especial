@@ -23,19 +23,19 @@ class ABIImageMCMI(BaseABIImage):
         super().__init__(dt, product, channels, satellite, local_dir)
 
     def open(self):
-        # Abrir solo un archivo NetCDF MCMI y cargar todas las bandas
+        # Abrir el NetCDF MCMI y registrar las bandas disponibles SIN leerlas.
+        # La lectura real se difiere a get_band_array(): asi solo se paga el
+        # I/O de las bandas que la receta efectivamente pide (3 de 16 en
+        # true_color) y, si hay ventana activa, solo el bloque recortado.
         self.mcmi_ds = open_goes_file(self.files[0])
         for ch in self.channels:
             var_name = f"CMI_{ch}"
             if var_name in self.mcmi_ds.variables:
-                band_variables = self.mcmi_ds.variables[var_name][:]
-                # Asegurarse de que sea 2D (puede tener shape (1, y, x)) ??
-                if band_variables.ndim == 3:
-                    band_variables = band_variables[0]
                 self.datasets[ch] = {
-                    "band_array": band_variables.values,
+                    "band_array": None,
                     "metadata": self.mcmi_ds.variables[var_name],
                     "ds": self.mcmi_ds,
+                    "lazy": True,
                 }
 
     def calibrate_band(self, band, raw_data, unit=None):
@@ -56,11 +56,25 @@ class ABIImageMCMI(BaseABIImage):
     def get_band_array(self, band):
         """
         Devuelve el array de datos de la banda solicitada.
+
+        La lee del NetCDF la primera vez y la cachea. Si hay ventana activa
+        (ver BaseABIImage.set_window) el slice se aplica antes de materializar,
+        de modo que HDF5 descomprime unicamente los chunks del recorte.
         """
-        if band in self.datasets:
-            return self.datasets[band]["band_array"]
-        else:
+        if band not in self.datasets:
             raise ValueError(f"Banda {band} no encontrada en los datasets.")
+
+        entrada = self.datasets[band]
+        if entrada["band_array"] is None:
+            var = self.mcmi_ds.variables[f"CMI_{band}"]
+            # Asegurarse de que sea 2D (puede tener shape (1, y, x)) ??
+            if var.ndim == 3:
+                var = var[0]
+            if self.window is not None:
+                f0, f1, c0, c1 = self.window
+                var = var[f0:f1, c0:c1]
+            entrada["band_array"] = var.values
+        return entrada["band_array"]
 
     def get_projection_params(self):
         # Implementación específica para obtener parámetros de proyección de MCMI (ligeramente diferente a L1b)
