@@ -3,6 +3,18 @@ FROM mambaorg/micromamba:1.5.8 as builder
 
 WORKDIR /app
 
+# --- Etapa 1b: Preparar el cache de cartopy ---
+# Cartopy baja los shapefiles de Natural Earth (costas, limites) a
+# $HOME/.local/share/cartopy, y docker-compose fija HOME=/tmp. Ese directorio
+# se persiste con un volumen nombrado para no re-descargarlos en cada corrida.
+# Hay que pre-crearlo con permisos abiertos: Docker siembra un volumen vacio
+# con el contenido Y los permisos que el path tiene en la imagen, y si el path
+# no existe lo crea como root:root 0755, con lo cual el UID del host con el que
+# corre el contenedor no puede escribir y cartopy falla con PermissionError.
+USER root
+RUN mkdir -p /tmp/.local/share/cartopy && chmod -R 777 /tmp/.local
+USER $MAMBA_USER
+
 # --- Etapa 2: Copiar TODO el código fuente ---
 # Copiamos todo primero, para que setup.py esté disponible durante la instalación.
 COPY . .

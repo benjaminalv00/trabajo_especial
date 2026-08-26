@@ -23,6 +23,8 @@ services:
       - ./componentes_rgb:/app/componentes_rgb
       - ./shapefiles:/app/shapefiles
       - ./data:/app/data  # Mounts the 'data' directory from the host to '/app/data' in the container.
+      # Cache de shapefiles de Natural Earth (ver la seccion volumes al final).
+      - cartopy-cache:/tmp/.local/share/cartopy
 
     # Ejecuta el proceso del contenedor con el User ID y Group ID del usuario
     # del host, para que los archivos generados no queden como root.
@@ -53,6 +55,7 @@ services:
       - ./geotiffs:/app/geotiffs
       - ./shapefiles:/app/shapefiles
       - .:/app
+      - cartopy-cache:/tmp/.local/share/cartopy
     # Ver la nota en goes-processor sobre HOST_UID/HOST_GID.
     user: "${HOST_UID:-1000}:${HOST_GID:-1000}"
 
@@ -67,3 +70,9 @@ services:
         "--server.port=8501",
         "--server.address=0.0.0.0"
       ]
+
+# Volumen nombrado para el cache de cartopy. Sin esto, los shapefiles de
+# Natural Earth viven solo en la capa escribible del contenedor y se vuelven a
+# descargar en cada `docker compose run --rm` y en cada recreacion de goes-ui.
+volumes:
+  cartopy-cache:
