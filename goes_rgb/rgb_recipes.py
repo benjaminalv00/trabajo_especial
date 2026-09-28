@@ -124,7 +124,7 @@ def air_mass():
 
     def B(img):
         imag_cal_C08 = img["C08"]  # va invertida
-        realce_blue = realce_gama((1 - imag_cal_C08), 1, 1, -29.25, -64.65)
+        realce_blue = realce_gama((imag_cal_C08), 1, 1, -29.25, -64.65)
         return realce_blue
 
     return {
@@ -387,21 +387,21 @@ def differential_water_vapor():
         # 7.3-6.2
         imag_cal_C10 = img["C10"]
         imag_cal_C08 = img["C08"]
-        realce_red = realce_gama(imag_cal_C10 - imag_cal_C08, 1, 0.2587, 30, -3)
+        realce_red = realce_gama(imag_cal_C10 - imag_cal_C08, 1, (1 / 0.2587), 30, -3)
 
-        return 1 - realce_red
+        return realce_red
 
     def G(img):
         # 7.3
         imag_cal_C10 = img["C10"]
-        realce_green = realce_gama(imag_cal_C10, 1, 0.4, 5, -60)
-        return 1 - realce_green
+        realce_green = realce_gama(imag_cal_C10, 1, (1 / 0.4), 5, -60)
+        return realce_green
 
     def B(img):
         # 6.2
         imag_cal_C08 = img["C08"]
-        realce_blue = realce_gama(imag_cal_C08, 1, 0.4, -29.25, -64.65)
-        return 1 - realce_blue
+        realce_blue = realce_gama(imag_cal_C08, 1, (1 / 0.4), -29.25, -64.65)
+        return realce_blue
 
     return {
         "funcs": {"R": R, "G": G, "B": B},
