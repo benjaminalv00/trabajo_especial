@@ -95,8 +95,8 @@ class PngOutputHandler(FrameOutputHandler):
             title=ctx.titulo,
             provincias_shp=ctx.shp,
             show=conf.get("show", False),
-            lon_interval=10,
-            lat_interval=10,
+            lon_interval=conf.get("lon_interval", 10),
+            lat_interval=conf.get("lat_interval", 10),
             save_path=str(ctx.png_path),
             save=True,
         )

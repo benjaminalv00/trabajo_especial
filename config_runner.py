@@ -202,6 +202,10 @@ def run_job(job, defaults):
                         title=titulo,
                         provincias_shp=shp,
                         show=False,
+                        # Mismo origen que PngOutputHandler, para que el frame
+                        # del GIF y el PNG suelto salgan con la misma grilla.
+                        lon_interval=confs["PNG"].get("lon_interval", 10),
+                        lat_interval=confs["PNG"].get("lat_interval", 10),
                         save_path=str(png_path),
                         save=True,
                     )
