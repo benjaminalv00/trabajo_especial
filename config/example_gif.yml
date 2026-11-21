@@ -1,0 +1,25 @@
+# Animación GIF: secuencia horaria sobre Córdoba.
+# Uso: python main.py --config config/example_gif.yml
+defaults:
+  tipo_imagen: MCMI
+  satelite: GOES19
+  recorte: [-28, -35, -67, -61.0]  # [latN, latS, lonW, lonE]
+  png_conf:
+    out_dir: salidas/
+    shapefile_provincias: shapefiles/provincias/linea_de_limite_070111Line.shp
+    show: false
+
+jobs:
+  - nombre: gif_cordoba
+    rango:
+      inicio: 2025-08-30T13:00:00
+      fin: 2025-08-30T20:00:00
+      paso_minutos: 60
+    productos: [daily_microphysics]
+    salidas: [PNG, GIF]
+    gif_conf:
+      producto: daily_microphysics  # producto que se anima
+      fps: 1                        # cuadros por segundo
+      loop: 0                       # 0 = repetir sin fin
+      filename: gif_cordoba_daily_microphysics.gif
+      out_dir: gifs/

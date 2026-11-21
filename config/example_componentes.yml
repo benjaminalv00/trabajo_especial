@@ -1,0 +1,22 @@
+# Componentes R, G y B de cada producto, exportadas por separado como GeoTIFF.
+# Uso: python main.py --config config/example_componentes.yml
+defaults:
+  tipo_imagen: MCMI
+  recorte: [-18.6, -56.45, -79.79, -53.0]  # [latN, latS, lonW, lonE]
+  png_conf:
+    out_dir: salidas/
+    shapefile_provincias: shapefiles/provincias/linea_de_limite_070111Line.shp
+    show: false
+  componentes_rgb_conf:
+    out_dir: componentes/
+    filename_pattern: "{producto}_{ts}_{canal}.tif"
+
+jobs:
+  - nombre: prueba_componentes
+    satelite: GOES19
+    datetime: 2025-08-30T15:00:00
+    productos: [true_color, day_convection]
+    salidas: [PNG, COMPONENTES_RGB]
+    # Se puede sobreescribir por job, por ejemplo para un solo producto:
+    # componentes_rgb_conf:
+    #   productos: [true_color]

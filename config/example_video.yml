@@ -1,0 +1,29 @@
+# Video MP4: secuencia horaria de los incendios de Córdoba (21/09/2024).
+# Necesita FFmpeg (lo instala environment.yml).
+# Uso: python main.py --config config/example_video.yml
+defaults:
+  tipo_imagen: MCMI
+  satelite: GOES16
+  recorte: [-28, -35, -67, -61.0]  # [latN, latS, lonW, lonE]
+  png_conf:
+    out_dir: salidas/
+    shapefile_provincias: shapefiles/provincias/linea_de_limite_070111Line.shp
+    show: false
+
+jobs:
+  - nombre: video_cordoba
+    rango:
+      inicio: 2024-09-21T16:00:00
+      fin: 2024-09-21T22:00:00
+      paso_minutos: 60
+    productos: [fire_temperature]
+    salidas: [PNG, VIDEO]
+    video_conf:
+      producto: fire_temperature
+      frame_seconds: 1.0  # segundos que dura cada cuadro (o usar fps)
+      filename: video_cordoba_fire_temperature.mp4
+      out_dir: videos/
+      codec: libx264
+      crf: 23
+      preset: medium
+      pix_fmt: yuv420p

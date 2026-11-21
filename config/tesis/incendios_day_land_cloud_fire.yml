@@ -1,8 +1,10 @@
+# Tesis: Day Land Cloud Fire sobre Córdoba (24/09/2024, 17 UTC).
+# Uso: python main.py --config config/tesis/incendios_day_land_cloud_fire.yml
 defaults:
   tipo_imagen: MCMI
   #recorte: [-28, -36.5, -67.0, -60.0]
   recorte: [-32, -33.5, -66.5, -65.0]
-  export:
+  png_conf:
     out_dir: salidas/
     shapefile_provincias: shapefiles/provincias/linea_de_limite_070111Line.shp
     show: false

@@ -1,3 +1,6 @@
+# Tesis: figuras comparativas del apéndice (30/08/2025, 17 UTC).
+# Cambiar `productos` según la figura; las variantes usadas quedan comentadas.
+# Uso: python main.py --config config/tesis/apendice_comparativas.yml
 defaults:
   tipo_imagen: MCMI
   recorte: [-28, -35, -67, -61.0]

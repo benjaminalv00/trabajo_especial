@@ -1,3 +1,6 @@
+# Tesis: producto propio de cicatriz de quemado (receta burn_scar) sobre
+# Córdoba, antes y después de los incendios de septiembre de 2024.
+# Uso: python main.py --config config/tesis/cicatriz_quemado.yml
 defaults:
   tipo_imagen: MCMI
   satelite: GOES16

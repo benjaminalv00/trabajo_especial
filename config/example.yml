@@ -1,7 +1,9 @@
+# Ejemplo básico: dos productos RGB de una misma fecha, exportados como PNG.
+# Uso: python main.py --config config/example.yml
 defaults:
   tipo_imagen: MCMI
-  recorte: [-18.6, -56.45, -79.79, -53.0]
-  export:
+  recorte: [-18.6, -56.45, -79.79, -53.0]  # [latN, latS, lonW, lonE]
+  png_conf:
     out_dir: salidas/
     shapefile_provincias: shapefiles/provincias/linea_de_limite_070111Line.shp
     show: false

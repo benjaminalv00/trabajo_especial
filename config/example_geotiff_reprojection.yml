@@ -1,6 +1,9 @@
+# GeoTIFF georreferenciado y sus reproyecciones a otros sistemas (EPSG),
+# listos para abrir en QGIS o Google Earth.
+# Uso: python main.py --config config/example_geotiff_reprojection.yml
 defaults:
   tipo_imagen: MCMI
-  satelite: GOES16
+  satelite: GOES19
   recorte: [-18.6, -56.45, -79.79, -53.0]  # latN, latS, lonW, lonE
 
   # Configuración de salidas PNG

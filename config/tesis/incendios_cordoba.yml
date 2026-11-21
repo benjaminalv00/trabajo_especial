@@ -1,8 +1,13 @@
+# Tesis: incendios en Córdoba del 21/09/2024 (Fire Temperature y Color Real,
+# con las componentes R, G y B del Fire Temperature).
+# Para la secuencia de la figura (16, 18, 20 y 22 UTC), descomentar `rango`
+# y quitar `datetime`.
+# Uso: python main.py --config config/tesis/incendios_cordoba.yml
 defaults:
   tipo_imagen: MCMI
   recorte: [-28, -35, -67, -61.0]
   #recorte: [-18.6, -56.45, -79.79, -53.0]
-  export:
+  png_conf:
     out_dir: salidas/
     shapefile_provincias: shapefiles/provincias/linea_de_limite_070111Line.shp
     show: false

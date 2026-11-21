@@ -1,22 +1,20 @@
-# this example is for loading l1b data from local directory
-# you can use it as a base for docker use
-# TODO: Tambien deberia haber un ejemplo con DESCARGA de imagenes l1b 
+# Igual que example_load_l1b.yml, para correr dentro del contenedor de Docker.
 defaults:
   tipo_imagen: L1B
-  recorte: [-18.6, -56.45, -79.79, -50.0]
-  data_dir: app/data/L1B/  # Directorio local donde se encuentran los archivos L1B
-  export:
+  recorte: [-18.6, -56.45, -79.79, -50.0]  # [latN, latS, lonW, lonE]
+  data_dir: /app/data/L1B/
+  png_conf:
     out_dir: salidas/
+    shapefile_provincias: shapefiles/provincias/linea_de_limite_070111Line.shp
     show: false
 
 jobs:
-  - nombre: prueba l1b 
+  - nombre: prueba_l1b
     datetime: 2018-07-13T15:00:00
     productos: [true_color]
-    canales: ["C02", "C03", "C01"]  # Canales específicos para true_color en L1B
-    # 1. Especificamos que la única salida deseada es GeoTIFF
-    salidas: [GeoTIFF]
+    canales: ["C02", "C03", "C01"]  # bandas que usa true_color
+    salidas: [GEOTIFF]
     geotiff_conf:
-      producto: true_color               
+      producto: true_color
       out_dir: geotiffs/
-      filename_pattern: "{producto}_{ts}.tif"  # {ts}=YYYYMMDD_HHMM 
+      filename_pattern: "{producto}_{ts}.tif"  # {ts} = AAAAMMDD_HHMM
