@@ -92,8 +92,8 @@ def test_build_image_selects_correct_constructor(monkeypatch):
             calls.append(("MCMI", dt, satellite, local_dir))
 
     class FakeL1B:
-        def __init__(self, dt, product, channels=None, local_dir=None):
-            calls.append(("L1B", dt, product, channels, local_dir))
+        def __init__(self, dt, product, channels=None, satellite=None, local_dir=None):
+            calls.append(("L1B", dt, product, channels, satellite, local_dir))
 
     monkeypatch.setitem(
         sys.modules, "goes_rgb.l2_abi_image", SimpleNamespace(ABIImageMCMI=FakeMCMI)
@@ -115,8 +115,10 @@ def test_build_image_selects_correct_constructor(monkeypatch):
         {},
     )
 
-    assert calls[0] == ("MCMI", dt, "noaa-goes16", "data")
-    assert calls[1] == ("L1B", dt, "ABI-L1b-RadF", ["C02"], "data2")
+    # Sin `satelite`, una fecha de 2026 usa el GOES-East vigente (GOES-19).
+    assert calls[0] == ("MCMI", dt, "noaa-goes19", "data")
+    # L1B ahora respeta el satélite pedido.
+    assert calls[1] == ("L1B", dt, "ABI-L1b-RadF", ["C02"], "noaa-goes18", "data2")
 
 
 def test_build_image_rejects_unknown_mode(monkeypatch):
@@ -288,3 +290,45 @@ def test_run_job_covers_main_output_branches(tmp_path, monkeypatch):
     # que la GUI muestra al usuario como "Archivos generados".
     assert any(r.endswith(".gif") for r in result)
     assert any(r.endswith(".mp4") for r in result)
+
+
+def test_satelite_por_defecto_segun_fecha():
+    assert config_runner.satelite_por_defecto(datetime(2024, 9, 21, 18)) == "GOES16"
+    assert config_runner.satelite_por_defecto(datetime(2025, 4, 6, 23)) == "GOES16"
+    assert config_runner.satelite_por_defecto(datetime(2025, 4, 7)) == "GOES19"
+    assert config_runner.satelite_por_defecto(datetime(2025, 8, 30, 15)) == "GOES19"
+
+
+def test_avisa_claves_viejas_y_desconocidas(capsys):
+    avisos = config_runner.avisar_claves_desconocidas(
+        {"export": {}, "video": {}, "tipo": "x", "productos": ["true_color"]},
+        "defaults",
+    )
+
+    assert len(avisos) == 3
+    salida = capsys.readouterr().out
+    assert "'export' ya no se usa; usá 'png_conf'" in salida
+    assert "'video' ya no se usa; usá 'video_conf'" in salida
+    assert "'tipo' no se reconoce" in salida
+
+
+def test_run_from_config_rechaza_job_vacio(tmp_path, monkeypatch):
+    config_path = tmp_path / "config.yml"
+    config_path.write_text(
+        """
+jobs:
+  -
+  - nombre: job_2
+    productos: [true_color]
+""".strip(),
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(config_runner, "run_job", lambda job, defaults: [])
+
+    with pytest.raises(ValueError, match="job número 1"):
+        config_runner.run_from_config(config_path)
+
+
+def test_run_job_exige_productos():
+    with pytest.raises(ValueError, match="no define 'productos'"):
+        config_runner.run_job({"nombre": "sin_productos"}, {})

@@ -24,8 +24,11 @@ def run_manual_demo():
         crs_geo=crs,
         title="Demo manual",
         provincias_shp="shapefiles/provincias/linea_de_limite_070111Line.shp",
-        show=True,
+        show=False,
+        save=True,
+        save_path="salidas/demo_true_color.png",
     )
+    print("Demo guardada en salidas/demo_true_color.png")
 
 
 def main():

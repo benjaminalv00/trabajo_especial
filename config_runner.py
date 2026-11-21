@@ -3,6 +3,39 @@ from pathlib import Path
 from datetime import datetime, timedelta
 from goes_rgb.recipes_registry import RECIPE_REGISTRY
 
+# GOES-19 reemplazó a GOES-16 como GOES-East el 7 de abril de 2025. Si el YAML
+# no indica `satelite`, se usa el GOES-East vigente en la fecha pedida.
+INICIO_GOES19_ESTE = datetime(2025, 4, 7)
+
+# Claves que el procesador lee de `defaults` y de cada job.
+CLAVES_CONOCIDAS = {
+    "nombre",
+    "productos",
+    "datetime",
+    "datetimes",
+    "rango",
+    "satelite",
+    "tipo_imagen",
+    "canales",
+    "recorte",
+    "data_dir",
+    "salidas",
+    "png_conf",
+    "gif_conf",
+    "video_conf",
+    "geotiff_conf",
+    "componentes_rgb_conf",
+}
+
+# Claves de versiones anteriores que hoy se ignoran, con su reemplazo.
+CLAVES_VIEJAS = {
+    "export": "png_conf",
+    "gif": "gif_conf",
+    "video": "video_conf",
+    "geotiff": "geotiff_conf",
+    "componentes_rgb": "componentes_rgb_conf",
+}
+
 
 def load_config(path):
     with open(path, "r", encoding="utf-8") as f:
@@ -26,6 +59,29 @@ def expand_datetimes(job):
             cur += timedelta(minutes=paso)
 
 
+def satelite_por_defecto(dt):
+    """Devuelve el GOES-East vigente en la fecha `dt`."""
+    return "GOES19" if dt >= INICIO_GOES19_ESTE else "GOES16"
+
+
+def avisar_claves_desconocidas(bloque, donde):
+    """Avisa las claves que el procesador no va a usar, para que no fallen en silencio."""
+    avisos = []
+    for clave in bloque:
+        if clave in CLAVES_VIEJAS:
+            avisos.append(
+                f"Aviso: en {donde}, la clave '{clave}' ya no se usa; "
+                f"usá '{CLAVES_VIEJAS[clave]}'."
+            )
+        elif clave not in CLAVES_CONOCIDAS:
+            avisos.append(
+                f"Aviso: en {donde}, la clave '{clave}' no se reconoce y se ignora."
+            )
+    for aviso in avisos:
+        print(aviso)
+    return avisos
+
+
 def build_image(dt, defaults, job, bandas=None):
     """
     Construye la imagen ABI del tipo pedido por el job.
@@ -40,11 +96,8 @@ def build_image(dt, defaults, job, bandas=None):
     from goes_rgb.l1b_abi_image import ABIImageL1b
 
     modo = job.get("tipo_imagen", defaults.get("tipo_imagen", "MCMI")).upper()
-    # NOTE: The default satellite has been changed from "GOES19" to "GOES16".
-    # This change may affect existing configurations that relied on the previous default.
-    # Please update your configuration if you require a different satellite.
-    # Justification: GOES16 is now the recommended/available default for this workflow.
-    satelite = job.get("satelite", defaults.get("satelite", "GOES16")).upper()
+    satelite = job.get("satelite", defaults.get("satelite")) or satelite_por_defecto(dt)
+    satelite = str(satelite).upper()
     data_dir = job.get("data_dir", defaults.get("data_dir", "data"))
     channels = job.get("canales", defaults.get("canales", None))
     if channels is None and bandas:
@@ -54,8 +107,13 @@ def build_image(dt, defaults, job, bandas=None):
             dt, satellite=f"noaa-{satelite.lower()}", local_dir=data_dir
         )
     if modo == "L1B":
-        # Ensure ABIImageL1b implementation properly handles the channels parameter
-        return ABIImageL1b(dt, "ABI-L1b-RadF", channels=channels, local_dir=data_dir)
+        return ABIImageL1b(
+            dt,
+            "ABI-L1b-RadF",
+            channels=channels,
+            satellite=f"noaa-{satelite.lower()}",
+            local_dir=data_dir,
+        )
     raise ValueError(f"tipo_imagen desconocido: {modo}")
 
 
@@ -115,6 +173,10 @@ def _build_processor(img, recipes, rec_tuple):
 
 
 def run_job(job, defaults):
+    if not job.get("productos"):
+        raise ValueError(
+            f"El job '{job.get('nombre', 'sin nombre')}' no define 'productos'."
+        )
     from goes_rgb.output_handlers import (
         FrameContext,
         FRAME_OUTPUT_REGISTRY,
@@ -223,8 +285,12 @@ def run_job(job, defaults):
 def run_from_config(ruta):
     cfg = load_config(ruta)
     total_generated_files = []
-    defaults = cfg.get("defaults", {})
-    for job in cfg.get("jobs", []):
+    defaults = cfg.get("defaults") or {}
+    avisar_claves_desconocidas(defaults, "defaults")
+    for i, job in enumerate(cfg.get("jobs") or [], start=1):
+        if not isinstance(job, dict):
+            raise ValueError(f"El job número {i} de {ruta} está vacío o mal escrito.")
+        avisar_claves_desconocidas(job, f"el job '{job.get('nombre', i)}'")
         generated_files = run_job(job, defaults)
         total_generated_files.extend(generated_files)
     return total_generated_files

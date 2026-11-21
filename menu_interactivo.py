@@ -149,11 +149,11 @@ def preguntar_productos():
             if 0 < i <= len(productos_disponibles)
         ]
     except ValueError:
-        print("⚠️ Entrada inválida, se usará 'TrueColor' por defecto.")
-        seleccionados = ["TrueColor"]
+        print("⚠️ Entrada inválida, se usará 'true_color' por defecto.")
+        seleccionados = ["true_color"]
 
     if not seleccionados:
-        seleccionados = ["TrueColor"]
+        seleccionados = ["true_color"]
 
     print(f"\n✅ Productos seleccionados: {', '.join(seleccionados)}")
     return seleccionados
