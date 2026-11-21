@@ -1,187 +1,247 @@
-# GOES RGB Processor 
-Herramienta para descargar, procesar y exportar productos RGB de GOES-16/18/19 a partir de archivos L1b/L2. Permite generar imágenes PNG, animaciones GIF, videos MP4 y salidas GeoTIFF georreferenciadas, todo configurable vía GUI y YAML.
+# GOES RGB Processor
 
-[Referencias de productos
-](https://rammb2.cira.colostate.edu/training/visit/quick_reference/#tab17)
+Herramienta para descargar, procesar y exportar productos RGB a partir de imágenes del instrumento ABI de los satélites GOES-16/18/19 (productos de Nivel 1b y MCMI de Nivel 2). Genera imágenes PNG, GeoTIFF georreferenciados (con reproyección opcional), componentes R/G/B por separado, animaciones GIF y videos MP4. Se configura con archivos YAML y tiene tres interfaces: línea de comandos, menú interactivo y aplicación web.
 
-Por sugerencias o dudas, contactarse a benjamin.alvarez@mi.unc.edu.ar
+Guías de los productos RGB: [CIRA Quick Guides](https://rammb2.cira.colostate.edu/training/visit/quick_reference/#tab17)
 
+Por sugerencias o dudas, escribir a benjamin.alvarez@mi.unc.edu.ar
 
-## Como ejecutar el procesador mediante interfaz grafica con Docker
-Si no tiene instalado Docker, puede dirigirse a el siguiente [link](https://docs.docker.com/desktop/) para descargarlo
+---
 
-una vez instalado Docker, desde el directorio raiz de este repositorio, ejecutar 
-```
-docker compose build
-```
+## Requisitos
 
-Luego, correr
+- **Linux o WSL** con **Conda** (canal conda-forge), o bien **Docker**.
+- **Internet:** los datos se descargan del bucket público de NOAA en AWS (`noaa-goes16`, `noaa-goes18`, `noaa-goes19`). La primera ejecución también descarga los mapas de Natural Earth que usa cartopy.
+- **Disco:** un archivo MCMI de disco completo pesa unos 350 MB por fecha; en L1b se descarga un archivo por banda.
+- **Ejecutar siempre desde la raíz del repositorio:** las rutas a recetas propias, shapefiles y carpetas de salida son relativas.
 
-```
-HOST_UID=$(id -u) HOST_GID=$(id -g) docker compose up -d goes-ui
-```
+---
 
-> **Por qué `HOST_UID` y no `UID`:** en bash `UID` es una variable de solo
-> lectura, así que `UID=$(id -u) docker compose ...` falla y el contenedor
-> termina corriendo como root, dejando los archivos generados con dueño root
-> en las carpetas de salida. Usando `HOST_UID`/`HOST_GID` esto no ocurre.
+## Primeros pasos
 
-En Windows (PowerShell) no hace falta definir nada: el `docker-compose.yml`
-usa `1000:1000` por defecto si las variables no están seteadas.
+### Con Conda
 
-```
-docker compose up -d goes-ui
-```
-
-Para acceder al front-end, en el navegador ingresar a 
-```
-http://localhost:8501/
-```
-
-## Estructura del Proyecto
-```
-trabajo_especial/
-├── config/                 # Ejemplos de configuración YAML
-├── componentes/            # Salidas de componentes RGB (GeoTIFF)
-├── data/                   # Descargas NetCDF (entrada)
-├── geotiffs/               # Salidas GeoTIFF (si se configuran)
-├── gifs/                   # Salidas GIF
-├── videos/                 # Salidas MP4
-├── salidas/                # PNG por producto/fecha
-├── goes_rgb/               # Código fuente del procesador
-│   ├── visualization.py    # Plot y guardado de imágenes
-│   ├── recipes_registry.py # Productos RGB disponibles
-│   ├── helpers.py          # Utilidades (GeoTIFF, etc.)
-│   └── ...
-├── app.py                  # <-- Interfaz gráfica principal (Streamlit)
-├── config_runner.py        # Lógica para ejecutar jobs desde configuración
-├── environment.yml         # 📦 Entorno Conda
-└── README.md               # Este archivo
-```
-
-## Requisitos e instalación
-
-Se recomienda usar Conda (canal conda-forge) para instalar dependencias nativas como cartopy, rasterio y GDAL.
-
-### Prerrequisitos
-- Tener Conda instalado (Anaconda o Miniconda).
-- Este proyecto asume el uso del entorno goes-env definido en `environment.yml`.
-	- Si el entorno ya fue creado previamente, simplemente actívalo antes de ejecutar cualquier comando:
-		```
-		conda activate goes-env
-		```
-	- Si aún no está creado, seguí los pasos de abajo para crearlo/actualizarlo.
-
-1) Crear el entorno
-- Si no existe el entorno:
-```
-conda env create -f environment.yml
-```
-- Para actualizar un entorno existente:
-```
-conda env update -n goes-env -f environment.yml --prune
-```
-- Activar:
-```
+```bash
+conda env create -f environment.yml      # la primera vez
 conda activate goes-env
-```
-
-## Uso rápido
-
-0) Asegurate de tener el entorno activo:
-```
-conda activate goes-env
-```
-
-1) Ejecutar una demo manual (sin YAML):
-```
-python main.py --demo
-```
-
-2) Ejecutar con YAML de configuración:
-```
 python main.py --config config/example.yml
 ```
 
-### Ejemplos de YAML de configuración
+Para actualizar un entorno ya creado: `conda env update -n goes-env -f environment.yml --prune`.
 
-Imagen única (PNG y GeoTIFF):
+**Qué esperar:** se descarga un NetCDF a `data/` (si ya está, se reutiliza) y quedan dos PNG en `salidas/`:
+
+- `prueba_color_real_nombre_true_color_20250830_1500.png`
+- `microfisica_diurna_1500_daily_microphysics_20250830_1500.png`
+
+### Con Docker
+
+```bash
+docker compose build
+HOST_UID=$(id -u) HOST_GID=$(id -g) docker compose run --rm goes-processor --config /app/config/example_docker.yml
 ```
+
+Las salidas aparecen en las carpetas del repositorio (`salidas/`, `gifs/`, `geotiffs/`, `videos/`, `componentes/`, `componentes_rgb/`), porque están montadas como volúmenes.
+
+> **Por qué `HOST_UID` y no `UID`:** en bash `UID` es una variable de solo lectura, así que `UID=$(id -u) docker compose ...` falla y el contenedor termina corriendo como root, dejando los archivos generados con dueño root. Con `HOST_UID`/`HOST_GID` esto no ocurre. En Windows (PowerShell) no hace falta definir nada: `docker-compose.yml` usa `1000:1000` por defecto.
+
+---
+
+## Interfaces
+
+Las tres terminan llamando a la misma función (`run_from_config`), así que producen los mismos resultados.
+
+| Interfaz | Cómo se lanza | Para qué |
+|---|---|---|
+| Línea de comandos | `python main.py --config <archivo.yml>` | Trabajos reproducibles y en lote |
+| Demo rápida | `python main.py --demo` | Prueba sin YAML: guarda `salidas/demo_true_color.png` |
+| Menú interactivo | `python menu_interactivo.py` | Armar un trabajo respondiendo preguntas en la terminal |
+| Aplicación web | `streamlit run app.py` y abrir http://localhost:8501/ | Uso con interfaz gráfica |
+
+La aplicación web también corre en Docker:
+
+```bash
+docker compose build
+HOST_UID=$(id -u) HOST_GID=$(id -g) docker compose up -d goes-ui
+```
+
+---
+
+## Configuración YAML
+
+Un archivo tiene dos bloques:
+
+- `defaults`: valores comunes a todos los trabajos.
+- `jobs`: lista de trabajos. Lo que defina un job pisa a `defaults`; los bloques `*_conf` se combinan clave por clave.
+
+```yaml
 defaults:
   tipo_imagen: MCMI
-  recorte: [-18.6, -56.45, -79.79, -50.0]
+  recorte: [-28, -35, -67, -61.0]   # [latN, latS, lonW, lonE]
+  png_conf:
+    out_dir: salidas/
 
 jobs:
-  - nombre: serie_geotiff
-    datetime: 2022-09-21T12:00:00
-    productos: [true_color, air_mass]
-    # 1. Especificamos que la única salida deseada es GeoTIFF
-    salidas: [GeoTIFF,PNG] 
-
-    # 2. Configuramos los detalles del GeoTIFF
-    png_conf:
-      productos: [true_color, air_mass]
-      shapefile_provincias: shapefiles/provincias/linea_de_limite_070111Line.shp
+  - nombre: cordoba
+    datetime: 2025-08-30T15:00:00
+    productos: [true_color, daily_microphysics]
+    salidas: [PNG, GEOTIFF]
     geotiff_conf:
-      productos: [true_color, air_mass]
-      out_dir: geotiffs/
-      filename_pattern: "{producto}_{ts}.tif"
+      producto: true_color
 ```
 
-## Como ejecutar el procesador mediante interfaz grafica sin Docker
-Asumiendo que ya tiene el entorno activado, simplemente correr 
+### Claves
 
+| Clave | Ejemplo | Si no se indica | Nota |
+|---|---|---|---|
+| `nombre` | `cordoba` | `job` | Prefijo de los PNG |
+| `productos` | `[true_color, air_mass]` | **obligatorio** | Ver [Productos disponibles](#productos-disponibles) |
+| `datetime` | `2025-08-30T15:00:00` | — | Fecha y hora en UTC |
+| `datetimes` | lista de fechas | — | Varias fechas sueltas |
+| `rango` | `{inicio, fin, paso_minutos}` | paso de 30 min | Serie temporal (para GIF y video) |
+| `satelite` | `GOES19` | según la fecha | GOES16 hasta el 6/4/2025, GOES19 desde el 7/4/2025 |
+| `tipo_imagen` | `MCMI` o `L1B` | `MCMI` | |
+| `canales` | `["C01", "C02", "C03"]` | las bandas que piden las recetas | Solo L1B |
+| `recorte` | `[latN, latS, lonW, lonE]` | disco completo | En grados; sur y oeste negativos |
+| `data_dir` | `data` | `data` | Descargas y caché local |
+| `salidas` | `[PNG, GEOTIFF, COMPONENTES_RGB, GIF, VIDEO]` | `[PNG]` | No distingue mayúsculas |
+| `png_conf` | ver abajo | | |
+| `geotiff_conf` | ver abajo | | **Sin este bloque no se genera GeoTIFF** |
+| `componentes_rgb_conf` | ver abajo | | |
+| `gif_conf` | ver abajo | | Necesita `producto` |
+| `video_conf` | ver abajo | | Necesita `producto` |
+
+Si una clave no se reconoce, o es de una versión anterior (`export`, `gif`, `video`, `geotiff`, `componentes_rgb`), el procesador avisa por pantalla y dice dónde va esa configuración.
+
+### Bloques de salida
+
+| Bloque | Claves | Valores por defecto |
+|---|---|---|
+| `png_conf` | `out_dir`, `shapefile_provincias`, `show`, `lon_interval`, `lat_interval` | `salidas`, shapefile del repo, `false`, 10, 10 |
+| `geotiff_conf` | `producto` o `productos`, `out_dir`, `filename_pattern` (`{producto}`, `{ts}`), `reproyecciones` | `out_dir` de los PNG, `{producto}_{ts}.tif` |
+| `componentes_rgb_conf` | `producto` o `productos`, `out_dir`, `filename_pattern` (`{producto}`, `{ts}`, `{canal}`) | todos los productos, `componentes` |
+| `gif_conf` | `producto`, `fps` o `frame_seconds`, `loop`, `filename`, `out_dir` | 1 cuadro por segundo, `loop: 0` (sin fin), `gifs` |
+| `video_conf` | `producto`, `fps` o `frame_seconds`, `codec`, `crf`, `preset`, `pix_fmt`, `filename`, `out_dir` | `libx264`, 23, `medium`, `yuv420p`, `videos` |
+
+Reproyecciones del GeoTIFF (además del original en la proyección del satélite):
+
+```yaml
+geotiff_conf:
+  producto: true_color
+  reproyecciones:
+    - epsg: "EPSG:3857"        # Web Mercator (Google Maps, OpenStreetMap)
+      suffix: "_web_mercator"
 ```
-streamlit run app.py
-```
+
+---
+
+## Ejemplos incluidos
+
+| Archivo | Qué muestra |
+|---|---|
+| `config/example.yml` | Lo básico: dos productos en PNG |
+| `config/example_gif.yml` | Animación GIF de una secuencia horaria |
+| `config/example_video.yml` | Video MP4 de los incendios de Córdoba (21/09/2024) |
+| `config/example_geotiff_reprojection.yml` | GeoTIFF y sus reproyecciones (para QGIS o Google Earth) |
+| `config/example_componentes.yml` | Componentes R, G y B por separado |
+| `config/example_custom.yml` | Una receta propia |
+| `config/example_load_l1b.yml` | Productos L1b |
+| `config/example_docker.yml`, `config/example_load_l1b_docker.yml` | Los mismos, para Docker |
+| `config/tesis/` | Configuraciones usadas para las figuras del trabajo final |
+
+---
+
+## Productos disponibles
+
+**Recetas oficiales** (siguen las guías de NOAA/CIRA): `true_color`, `daily_microphysics`, `microfisica_nocturna`, `fire_temperature`, `air_mass`, `ash`, `dust`, `day_cloud_convection`, `day_convection`, `day_land_cloud`, `day_land_cloud_fire`, `day_snow_fog`, `simple_water_vapor`, `differential_water_vapor`.
+
+**Recetas propias** (en `config/custom_recipes/`): `burn_scar` (cicatriz de quemado), `falso_color`, `true_color_personalizado`.
+
+---
 
 ## Salidas
-- PNG por producto/fecha: en salidas/ , nombre: {nombre_job}_{producto}_{YYYYMMDD_HHMM}.png
-- GIF: en gifs/ 
-- MP4: en videos/
-- GeoTIFF: en geotiffs/ ; con CRS y transform del producto (CRS nativo GOES)
-- Componentes RGB: en componentes/ , 3 GeoTIFF por producto/fecha (R/G/B)
 
-## Notas de proyección y recorte
-- El raster se mantiene en el CRS nativo geostacionario de GOES (no hay warp a EPSG:4326).
-- El recorte se define en lon/lat; se transforma a índices de píxel y se aplica al generar el RGB. El extent usado para plot y GeoTIFF es consistente con ese recorte.
-- Los shapefiles se proyectan al vuelo (Cartopy) sobre el lienzo del producto.
+| Salida | Carpeta por defecto | Nombre |
+|---|---|---|
+| PNG | `salidas/` | `{nombre}_{producto}_{AAAAMMDD_HHMM}.png` |
+| GeoTIFF | la de los PNG (o `out_dir`) | `{producto}_{AAAAMMDD_HHMM}.tif`, más un archivo por reproyección |
+| Componentes R/G/B | `componentes/` | un GeoTIFF por canal (conviene un `filename_pattern` terminado en `.tif`) |
+| GIF | `gifs/` | `{producto}.gif` o `filename` |
+| MP4 | `videos/` | `{producto}.mp4` o `filename` |
 
-## Recetas personalizadas
-- Las recetas custom se registran de forma manual en `goes_rgb/recipes_registry.py`.
-- Los archivos de receta viven en `config/custom_recipes/` y deben exponer una función `recipe()` que devuelva el dict con `funcs`, `bands` y `emissive_units`.
-- Esto evita el auto-descubrimiento y hace el arranque más predecible.
-- Guía paso a paso: `docs/CUSTOM_RECIPES.md`.
+---
 
-## Consejos y resolución de problemas
-- MP4 se ve “raro” o no abre:
-	- Asegura fps > 0 (o usa frame_seconds razonable). El código limita a un mínimo interno.
-	- Para compatibilidad H.264 (yuv420p), las dimensiones del video deben ser pares; el writer agrega padding si hace falta.
-- Advertencia macro_block_size=16:
-	- Es normal si las dimensiones no son múltiplos de 16. Se puede ignorar o padear a múltiplos de 16.
-- “not enough frames to estimate rate”:
-	- Ocurre con muy pocos frames; define fps/frame_seconds y/o agrega más frames.
-- GeoTIFF vacío o desalineado:
-	- Verifica recorte y extent; el helper usa x/y y los índices del recorte para construir el transform.
-- Falta FFmpeg:
-	- Instala imageio-ffmpeg (Conda/pip) o FFmpeg del sistema.
+## Recetas propias
 
-## Desarrollo
-- Ejecutar con otra config:
-```
-python main.py --config config/video_example.yml
+1. Crear el archivo en `config/custom_recipes/`, con una función `recipe()` que devuelva un diccionario con `funcs` (funciones `R`, `G` y `B`), `bands` y `emissive_units`.
+2. Registrarla en `goes_rgb/recipes_registry.py`.
+3. Usar su nombre en `productos`.
+
+No hace falta tocar el resto del procesador. Guía paso a paso: [`docs/CUSTOM_RECIPES.md`](docs/CUSTOM_RECIPES.md).
+
+---
+
+## Tests
+
+```bash
+conda activate goes-env
+python -m pytest                       # toda la suite
+python -m pytest --cov=goes_rgb        # con cobertura
 ```
 
-## Como ejecutar con docker (sin GUI)
-Desde el directorio raiz, ejecutar 
-```
-docker-compose build
-```
-Luego, correr
-```
-HOST_UID=$(id -u) HOST_GID=$(id -g) docker compose run --rm goes-processor --config /app/config/example.yml
-```
+Usar `python -m pytest` (y no `pytest` a secas) asegura que se use el Python del entorno.
 
-Las salidas aparecen directamente en las carpetas del repositorio
-(`salidas/`, `gifs/`, `geotiffs/`, `videos/`, `componentes/`,
-`componentes_rgb/`), porque están montadas como volúmenes.
+---
+
+## Notas técnicas
+
+- **Fecha y escaneo:** se usa el escaneo cuyo inicio está más cerca de la fecha pedida, dentro de esa hora (en modo 6 hay uno cada 10 minutos). Un archivo ya descargado se reutiliza si empezó a lo sumo 5 minutos antes o después.
+- **Proyección:** el PNG y el GeoTIFF base quedan en la proyección nativa del satélite (geoestacionaria). El GeoTIFF se puede reproyectar a otros sistemas con `reproyecciones`.
+- **Recorte:** las esquinas en latitud y longitud se convierten a índices de la grilla del ABI, y se recorta por índices.
+- **Resoluciones:** las bandas de 0,5 y 1 km se llevan a la grilla de 2 km por decimación.
+- **Reflectancia:** las bandas reflectivas de L1b se calibran al factor de reflectancia (κ₀ × radiancia), sin corrección por ángulo cenital solar.
+
+---
+
+## Problemas frecuentes
+
+- **"No se encontraron archivos para…":** revisar fecha, hora (en UTC) y satélite. GOES-16 dejó de ser GOES-East en abril de 2025; para fechas posteriores corresponde `GOES19`.
+- **Aviso de clave que no tiene efecto:** el mensaje dice en qué bloque va esa configuración (por ejemplo, `export` → `png_conf`).
+- **No se genera el GeoTIFF:** falta el bloque `geotiff_conf`, o el job tiene varios productos y no se indicó `producto`/`productos`.
+- **El MP4 se ve raro o no abre:** usar `fps` mayor a 0 (o un `frame_seconds` razonable). Para H.264 (`yuv420p`) las dimensiones deben ser pares: el procesador agrega relleno si hace falta. El aviso `macro_block_size=16` es normal y se puede ignorar.
+- **"not enough frames to estimate rate":** hay muy pocos cuadros; definir `fps`/`frame_seconds` o agregar fechas.
+- **Falta FFmpeg:** instalar `imageio-ffmpeg` o FFmpeg del sistema (`environment.yml` ya lo incluye).
+- **Errores de rutas o recetas propias que no se encuentran:** ejecutar desde la raíz del repositorio.
+
+---
+
+## Estructura del proyecto
+
+```
+trabajo_especial/
+├── main.py                  # Línea de comandos
+├── menu_interactivo.py      # Menú en la terminal
+├── app.py                   # Aplicación web (Streamlit)
+├── config_runner.py         # Orquestador: lee el YAML y ejecuta cada job
+├── goes_rgb/                # Núcleo del procesador
+│   ├── aws_interface.py     # Descarga desde AWS y caché local
+│   ├── base_abi_image.py    # Clase abstracta de imagen ABI
+│   ├── l1b_abi_image.py     # Productos L1b (calibración)
+│   ├── l2_abi_image.py      # Productos MCMI (lectura acotada al recorte)
+│   ├── rgb_processor.py     # Calibra solo las bandas que pide cada receta
+│   ├── rgb_product.py       # Compone el RGB a partir de una receta
+│   ├── rgb_recipes.py       # Recetas oficiales
+│   ├── recipes_registry.py  # Registro de recetas (oficiales y propias)
+│   ├── output_handlers.py   # Salidas: PNG, GeoTIFF, componentes, GIF, MP4
+│   ├── visualization.py     # Dibujo con costas, límites y grilla
+│   └── helpers.py           # Calibración, realces, recorte, GeoTIFF
+├── config/                  # Ejemplos YAML, recetas propias y config/tesis/
+├── docs/                    # Documentación (recetas propias)
+├── scripts/                 # Utilidades (reproyección de GeoTIFF)
+├── shapefiles/              # Límites provinciales
+├── tests/                   # Tests (pytest)
+├── data/                    # Descargas NetCDF
+├── salidas/ geotiffs/ componentes/ gifs/ videos/   # Salidas
+├── Dockerfile, docker-compose.yml
+└── environment.yml          # Entorno Conda
+```
