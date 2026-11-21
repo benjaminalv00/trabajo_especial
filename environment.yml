@@ -39,6 +39,8 @@ dependencies:
   - jupyter = 1.1.1
 
   # --- dev ---
+  - pytest = 9.1.1
+  - pytest-cov
   - pip = 26.1.2
   - pip:
       - -e .

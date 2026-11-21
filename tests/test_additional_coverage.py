@@ -5,24 +5,12 @@ import numpy as np
 import pytest
 
 import goes_rgb.aws_interface as aws_interface
-import goes_rgb.core as core
 import goes_rgb.l1b_abi_image as l1b_abi_image
 import goes_rgb.l2_abi_image as l2_abi_image
 import goes_rgb.reader as reader
 import goes_rgb.rgb_processor as rgb_processor
 import goes_rgb.rgb_product as rgb_product
 import goes_rgb.visualization as visualization
-
-
-class DummyABIImage(core.ABIImage):
-    def open(self):
-        return None
-
-    def get_projection_params(self):
-        return None, None, None
-
-    def calibrate_band(self, band, raw_data, unit=None):
-        return raw_data
 
 
 class FakeBandData:
@@ -324,19 +312,6 @@ def test_list_goes_files_filters_non_nc(monkeypatch):
     ]
 
 
-def test_base_abi_image_download_raises_when_no_files(monkeypatch):
-    monkeypatch.setattr(
-        core, "download_goes_files_for_datetime", lambda *args, **kwargs: []
-    )
-    image = core.ABIImage(
-        datetime(2026, 1, 1), "ABI-L2-MCMIPF", ["C01"], "noaa-goes16", "data"
-    )
-
-    image.download()
-
-    assert image.files == []
-
-
 def test_abiimage_l1b_get_band_array_calibrates_emissive_and_reflective():
     image = l1b_abi_image.ABIImageL1b(
         datetime(2026, 1, 1),
@@ -613,109 +588,6 @@ def test_aws_list_and_download_branches(monkeypatch, tmp_path):
         str(tmp_path / "OR_ABI-L1b-RadF-M6_G16_s2026001000000_C03.nc"),
     ]
     assert downloaded
-
-
-def test_core_open_and_projection_helpers(monkeypatch):
-    class FakeMCMIDataset:
-        def __init__(self):
-            self.variables = {
-                "x": SimpleNamespace(values=np.array([1.0, 2.0])),
-                "y": SimpleNamespace(values=np.array([3.0, 4.0])),
-                "CMI_C01": FakeBandVariable(np.array([[1.0, 2.0], [3.0, 4.0]]), ndim=2),
-            }
-            self._projection = FakeProjection()
-
-        def __getitem__(self, key):
-            if key == "goes_imager_projection":
-                return self._projection
-            return self.variables[key]
-
-    class FakeL1BDataset:
-        def __init__(self, band_id, shape):
-            self.band_id = FakeBandId(band_id)
-            self.variables = {
-                "x": SimpleNamespace(values=FakeAxisValues((10848,))),
-                "y": SimpleNamespace(values=FakeAxisValues((10848,))),
-                "band_id": self.band_id,
-                "kappa0": SimpleNamespace(data=1.0),
-            }
-            self.coords = {
-                "x": SimpleNamespace(values=FakeAxisValues((10848,))),
-                "y": SimpleNamespace(values=FakeAxisValues((10848,))),
-            }
-            self._projection = FakeProjection()
-            self._band_array = FakeBandArray(shape)
-
-        def __getitem__(self, key):
-            if key == "Rad":
-                return SimpleNamespace(values=self._band_array)
-            if key == "goes_imager_projection":
-                return self._projection
-            raise KeyError(key)
-
-        def close(self):
-            return None
-
-    mcmi_ds = FakeMCMIDataset()
-    l1b_ds_1 = FakeL1BDataset(2, (10848, 10848))
-    l1b_ds_2 = FakeL1BDataset(3, (21696, 21696))
-    l1b_ds_3 = FakeL1BDataset(4, (5424, 5424))
-
-    def fake_open(path):
-        if path == "mcmi.nc":
-            return mcmi_ds
-        if path == "l1b1.nc":
-            return l1b_ds_1
-        if path == "l1b2.nc":
-            return l1b_ds_2
-        return l1b_ds_3
-
-    monkeypatch.setattr(core, "open_goes_file", fake_open)
-
-    mcmi = core.ABIImage(
-        datetime(2026, 1, 1), "ABI-L2-MCMIPF", ["C01"], "noaa-goes16", "data"
-    )
-    mcmi.files = ["mcmi.nc"]
-    mcmi.open()
-    crs, x, y = mcmi.get_projection_params()
-    assert mcmi.datasets["C01"]["band_array"].shape == (2, 2)
-    assert np.allclose(x, np.array([1.0, 2.0]) * 35786023.0)
-    assert np.allclose(y, np.array([3.0, 4.0]) * 35786023.0)
-    assert crs is not None
-
-    l1b = core.ABIImage(
-        datetime(2026, 1, 1),
-        "ABI-L1b-RadF",
-        ["C02", "C03", "C04"],
-        "noaa-goes16",
-        "data",
-    )
-    l1b.files = ["l1b1.nc", "l1b2.nc", "l1b3.nc"]
-    l1b.open()
-    assert l1b.datasets["C02"]["band_array"].shape == (5424, 5424)
-    assert l1b.datasets["C03"]["band_array"].shape == (5424, 5424)
-    assert l1b.datasets["C04"]["band_array"].shape == (5424, 5424)
-
-
-def test_core_get_bbox_indices_uses_helper(monkeypatch):
-    image = core.ABIImage(
-        datetime(2026, 1, 1), "ABI-L2-MCMIPF", ["C01"], "noaa-goes16", "data"
-    )
-
-    monkeypatch.setattr(
-        image,
-        "get_projection_params",
-        lambda: (
-            SimpleNamespace(name="crs"),
-            np.array([1.0, 2.0]),
-            np.array([3.0, 4.0]),
-        ),
-    )
-    monkeypatch.setattr(
-        core, "get_pixel_indices_from_latlon_bbox", lambda *args: (9, 8, 7, 6)
-    )
-
-    assert image.get_bbox_indices(-1, 1, -2, 2) == (9, 8, 7, 6)
 
 
 def test_l1b_init_default_channels_and_missing_band():

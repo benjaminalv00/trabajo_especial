@@ -1,5 +1,4 @@
 import numpy as np
-from goes_rgb.helpers import resample_to_shape
 
 
 class RGBProduct:

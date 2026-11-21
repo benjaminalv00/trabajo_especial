@@ -11,10 +11,6 @@ class RGBProcessor:
         self.recipes = recipes
         self.recorte = recorte
         self.products = {}
-        # formas de hacerlo eficientes: solo calibrar segun las recipes
-        # Ojo aca porque en realidad la calibracion depende de la banda
-        # Preguntar a sergio si esto es cierto, o puedo calibrar bandas random por
-        # Cualquier cosa
 
     def calibrate_images_for_recipe(self, recipe):
         """
