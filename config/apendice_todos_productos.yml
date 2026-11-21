@@ -1,0 +1,28 @@
+defaults:
+  tipo_imagen: MCMI
+  recorte: [-28, -35, -67, -61.0]
+  png_conf:
+    out_dir: salidas/
+    shapefile_provincias: shapefiles/provincias/linea_de_limite_070111Line.shp
+    show: false
+
+jobs:
+  # - nombre: apendice_comp
+  #   satelite: GOES16
+  #   datetime: 2024-09-21T18:00:00
+  #   productos: [day_land_cloud_fire, day_land_cloud]
+  #   salidas: [PNG]
+
+  - nombre: apendice_comp
+    satelite: GOES19
+    datetime: 2025-08-30T17:00:00
+    recorte: [-18.6, -56.45, -79.79, -53.0]
+    #productos: [day_cloud_convection, day_convection, day_snow_fog, air_mass, ash, simple_water_vapor, dust, differential_water_vapor]
+    productos: [day_land_cloud]
+    salidas: [PNG]
+
+# - nombre: apendice_comp
+#   satelite: GOES19
+#   datetime: 2025-08-30T07:00:00
+#   productos: [microfisica_nocturna, true_color]
+#   salidas: [PNG]

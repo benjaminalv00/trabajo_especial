@@ -9,12 +9,11 @@ defaults:
 
 jobs:
   - nombre: cba_day_land
-    recorte: [-30, -31.5, -65, -63.5]
+    # recorte: [-30, -31.5, -65, -64]
+    recorte: [-30.0, -34.0, -67.0, -62.0]
     satelite: GOES16
-    datetime: 2024-09-21T17:00:00
+    datetime: 2024-09-24T17:00:00
     productos: [day_land_cloud_fire]
-
-  # - nombre: sanluis_fire_day_land
-  #   satelite: GOES16
-  #   datetime: 2024-09-21T17:00:00
-  #   productos: [day_land_cloud_fire]
+    # png_conf:
+    #   lon_interval: 1
+    #   lat_interval: 1
