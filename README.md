@@ -1,6 +1,8 @@
 # GOES RGB Processor
 
-Herramienta para descargar, procesar y exportar productos RGB a partir de imágenes del instrumento ABI de los satélites GOES-16/18/19 (productos de Nivel 1b y MCMI de Nivel 2). Genera imágenes PNG, GeoTIFF georreferenciados (con reproyección opcional), componentes R/G/B por separado, animaciones GIF y videos MP4. Se configura con archivos YAML y tiene tres interfaces: línea de comandos, menú interactivo y aplicación web.
+Herramienta para descargar, procesar y exportar productos RGB a partir de imágenes del instrumento ABI de los satélites GOES-16/18/19 (productos de Nivel 1b y MCMI de Nivel 2). Genera imágenes PNG, GeoTIFF georreferenciados (con reproyección opcional), componentes R/G/B por separado, animaciones GIF y videos MP4. 
+Se configura con archivos YAML y se puede usar desde la línea de comandos, un menú interactivo, una aplicación web o como módulo desde otro programa. 
+
 
 Guías de los productos RGB: [CIRA Quick Guides](https://rammb2.cira.colostate.edu/training/visit/quick_reference/#tab17)
 
@@ -13,7 +15,7 @@ Por sugerencias o dudas, escribir a benjamin.alvarez@mi.unc.edu.ar
 - **Linux o WSL** con **Conda** (canal conda-forge), o bien **Docker**.
 - **Internet:** los datos se descargan del bucket público de NOAA en AWS (`noaa-goes16`, `noaa-goes18`, `noaa-goes19`). La primera ejecución también descarga los mapas de Natural Earth que usa cartopy.
 - **Disco:** un archivo MCMI de disco completo pesa unos 350 MB por fecha; en L1b se descarga un archivo por banda.
-- **Ejecutar siempre desde la raíz del repositorio:** las rutas a recetas propias, shapefiles y carpetas de salida son relativas.
+- **Directorio de trabajo:** las descargas (`data/`) y las salidas (`salidas/`, `gifs/`, etc.) se crean relativas a la carpeta desde donde se ejecuta. Las recetas propias y los shapefiles del repositorio se encuentran desde cualquier ubicación.
 
 ---
 
@@ -49,7 +51,7 @@ Las salidas aparecen en las carpetas del repositorio (`salidas/`, `gifs/`, `geot
 
 ## Interfaces
 
-Las tres terminan llamando a la misma función (`run_from_config`), así que producen los mismos resultados.
+Todas terminan llamando a la misma función (`run_from_config`), así que producen los mismos resultados.
 
 | Interfaz | Cómo se lanza | Para qué |
 |---|---|---|
@@ -57,6 +59,15 @@ Las tres terminan llamando a la misma función (`run_from_config`), así que pro
 | Demo rápida | `python main.py --demo` | Prueba sin YAML: guarda `salidas/demo_true_color.png` |
 | Menú interactivo | `python menu_interactivo.py` | Armar un trabajo respondiendo preguntas en la terminal |
 | Aplicación web | `streamlit run app.py` y abrir http://localhost:8501/ | Uso con interfaz gráfica |
+| Desde otro programa | `from goes_rgb import run_from_config` | Usarlo como módulo dentro de otro código |
+
+
+Para usarlo desde otro programa, instalar el paquete en el entorno una vez (`pip install -e .` desde la raíz del repositorio) y luego:
+
+```python
+from goes_rgb import run_from_config
+archivos = run_from_config("ruta/a/mi_config.yml")
+```
 
 La aplicación web también corre en Docker:
 
@@ -211,7 +222,7 @@ Usar `python -m pytest` (y no `pytest` a secas) asegura que se use el Python del
 - **El MP4 se ve raro o no abre:** usar `fps` mayor a 0 (o un `frame_seconds` razonable). Para H.264 (`yuv420p`) las dimensiones deben ser pares: el procesador agrega relleno si hace falta. El aviso `macro_block_size=16` es normal y se puede ignorar.
 - **"not enough frames to estimate rate":** hay muy pocos cuadros; definir `fps`/`frame_seconds` o agregar fechas.
 - **Falta FFmpeg:** instalar `imageio-ffmpeg` o FFmpeg del sistema (`environment.yml` ya lo incluye).
-- **Errores de rutas o recetas propias que no se encuentran:** ejecutar desde la raíz del repositorio.
+- **`No module named 'goes_rgb'` desde otro programa:** falta instalar el paquete en el entorno (`pip install -e .` desde la raíz del repositorio).
 
 ---
 
@@ -222,8 +233,8 @@ trabajo_especial/
 ├── main.py                  # Línea de comandos
 ├── menu_interactivo.py      # Menú en la terminal
 ├── app.py                   # Aplicación web (Streamlit)
-├── config_runner.py         # Orquestador: lee el YAML y ejecuta cada job
 ├── goes_rgb/                # Núcleo del procesador
+│   ├── runner.py            # Ejecuta los trabajos descritos en el YAML (run_from_config)
 │   ├── aws_interface.py     # Descarga desde AWS y caché local
 │   ├── base_abi_image.py    # Clase abstracta de imagen ABI
 │   ├── l1b_abi_image.py     # Productos L1b (calibración)

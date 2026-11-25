@@ -6,7 +6,7 @@ import sys
 import numpy as np
 import pytest
 
-import config_runner
+import goes_rgb.runner as config_runner
 import goes_rgb.helpers as real_helpers
 
 
@@ -332,3 +332,33 @@ jobs:
 def test_run_job_exige_productos():
     with pytest.raises(ValueError, match="no define 'productos'"):
         config_runner.run_job({"nombre": "sin_productos"}, {})
+
+
+def test_run_from_config_se_importa_desde_el_paquete():
+    import goes_rgb
+
+    assert goes_rgb.run_from_config is config_runner.run_from_config
+
+
+def test_recetas_propias_se_cargan_desde_otro_directorio(tmp_path, monkeypatch):
+    import importlib
+
+    import goes_rgb.recipes_registry as registry
+
+    monkeypatch.chdir(tmp_path)
+    recargado = importlib.reload(registry)
+    assert "burn_scar" in recargado.RECIPE_REGISTRY
+
+
+def test_shapefile_por_defecto_no_depende_del_directorio_de_trabajo():
+    assert config_runner.SHP_PROVINCIAS.is_absolute()
+    assert config_runner.SHP_PROVINCIAS.exists()
+
+
+def test_ruta_relativa_del_yaml_se_busca_desde_la_raiz(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    ruta = config_runner.ruta_del_repo(
+        "shapefiles/provincias/linea_de_limite_070111Line.shp"
+    )
+    assert ruta == str(config_runner.SHP_PROVINCIAS)
+    assert config_runner.ruta_del_repo("no/existe.shp") == "no/existe.shp"

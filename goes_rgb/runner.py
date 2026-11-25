@@ -7,6 +7,23 @@ from goes_rgb.recipes_registry import RECIPE_REGISTRY
 # no indica `satelite`, se usa el GOES-East vigente en la fecha pedida.
 INICIO_GOES19_ESTE = datetime(2025, 4, 7)
 
+# Archivos que trae el repositorio (shapefile de provincias). Se resuelven
+# relativos a la raíz del repo y no al directorio de trabajo, para que el
+# procesador funcione cuando se lo llama desde otro programa.
+RAIZ_REPO = Path(__file__).resolve().parent.parent
+SHP_PROVINCIAS = RAIZ_REPO / "shapefiles/provincias/linea_de_limite_070111Line.shp"
+
+
+def ruta_del_repo(ruta):
+    """Devuelve la ruta tal cual si existe; si es relativa y no existe desde
+    el directorio de trabajo, la busca desde la raíz del repositorio."""
+    p = Path(ruta)
+    if p.is_absolute() or p.exists():
+        return str(p)
+    candidata = RAIZ_REPO / p
+    return str(candidata) if candidata.exists() else str(p)
+
+
 # Claves que el procesador lee de `defaults` y de cada job.
 CLAVES_CONOCIDAS = {
     "nombre",
@@ -210,10 +227,7 @@ def run_job(job, defaults):
 
         out_dir = Path(confs["PNG"].get("out_dir", "salidas"))
         out_dir.mkdir(parents=True, exist_ok=True)
-        shp = confs["PNG"].get(
-            "shapefile_provincias",
-            "shapefiles/provincias/linea_de_limite_070111Line.shp",
-        )
+        shp = ruta_del_repo(confs["PNG"].get("shapefile_provincias", SHP_PROVINCIAS))
 
         for nombre in productos:
             rgb = processor.get_product(nombre)

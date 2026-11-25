@@ -1,5 +1,5 @@
 import argparse
-from config_runner import run_from_config
+from goes_rgb.runner import run_from_config
 
 
 def run_manual_demo():

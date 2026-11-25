@@ -1,7 +1,7 @@
 """
 Tests unitarios de los handlers de salida.
 
-A diferencia de test_config_runner.py, que ejercita los handlers de forma
+A diferencia de test_runner.py, que ejercita los handlers de forma
 indirecta a traves de run_job(), estos tests los verifican de forma
 aislada: esa es justamente la propiedad que el refactor a
 Strategy + Registry buscaba habilitar.

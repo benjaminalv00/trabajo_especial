@@ -5,7 +5,7 @@ Cada tipo de salida (PNG, COMPONENTES_RGB, GEOTIFF, GIF, VIDEO) se modela
 como un handler resuelto por nombre desde un registry, replicando el mismo
 patron Strategy + Registry que goes_rgb.recipes_registry usa para las
 recetas RGB. Hay dos familias de handlers segun su ciclo de vida dentro de
-config_runner.run_job:
+goes_rgb.runner.run_job:
 
 - FrameOutputHandler: se resuelven una vez por cada par (fecha, producto),
   dentro del loop principal (PNG, COMPONENTES_RGB, GEOTIFF).
@@ -16,7 +16,7 @@ config_runner.run_job:
 Las importaciones de librerias externas (plot_rgb_with_coastlines,
 save_band_geotiff, save_rgb_geotiff, reproject_geotiff, imageio) se
 mantienen dentro de cada metodo, no al tope del modulo: la suite de tests
-de config_runner las reemplaza en tiempo de ejecucion via
+de goes_rgb.runner las reemplaza en tiempo de ejecucion via
 `monkeypatch.setitem(sys.modules, ...)` y `monkeypatch.setattr` sobre el
 modulo real, lo cual requiere que el import se re-ejecute en cada llamada
 en vez de resolverse una unica vez al cargar este modulo.

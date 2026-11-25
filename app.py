@@ -2,7 +2,7 @@ import streamlit as st
 import yaml
 from pathlib import Path
 from datetime import datetime
-from config_runner import run_from_config
+from goes_rgb.runner import run_from_config
 from goes_rgb.recipes_registry import RECIPE_REGISTRY
 
 

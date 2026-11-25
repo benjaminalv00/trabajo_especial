@@ -34,10 +34,18 @@ RECIPE_REGISTRY = {
 }
 
 
+# Raíz del repositorio: las recetas propias se buscan relativas a ella y no
+# al directorio de trabajo, así el paquete se puede importar desde cualquier
+# lado (por ejemplo, desde otro programa).
+_RAIZ_REPO = Path(__file__).resolve().parent.parent
+
+
 def _load_custom_recipe(module_name: str, file_path: str):
     import importlib.util
 
     p = Path(file_path)
+    if not p.is_absolute():
+        p = _RAIZ_REPO / p
     spec = importlib.util.spec_from_file_location(module_name, str(p))
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)

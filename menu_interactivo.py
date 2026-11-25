@@ -3,7 +3,7 @@ import yaml
 import re
 from datetime import datetime
 from pathlib import Path
-from config_runner import run_from_config
+from goes_rgb.runner import run_from_config
 from goes_rgb.recipes_registry import RECIPE_REGISTRY
 
 # ============================================================
